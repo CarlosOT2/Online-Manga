@@ -1,0 +1,25 @@
+# Ignora arquivos e configurações específicas de IDEs                       
+**/.env                    
+**/.git                    
+**/.gitignore                           
+**/.toolstarget            
+**/.vs                     
+**/.vscode                 
+**/*.*proj.user # Ignora arquivos de configuração do Visual Studio relacionados a usuário   
+
+# Arquivos de metadata ou banco de dados local do VS
+**/*.dbmdl                 
+**/*.jfm                   
+
+# Arquivos de configuração de ambientes de desenvolvimento e deployment            
+**/secrets.dev.yaml        
+**/values.dev.yaml        
+
+# Pastas de build e binários (geradas automaticamente)
+**/bin                     
+**/obj                     
+**/out                    
+
+# Configurações de Docker e Compose (geralmente só usadas localmente)
+**/docker-compose*         
+**/Dockerfile*                             

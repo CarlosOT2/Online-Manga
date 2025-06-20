@@ -1,0 +1,39 @@
+## RAIZ 
+
+# VS Code / sistema
+.vscode/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+Thumbs.db
+.DS_Store
+*.log
+*.tmp
+*.temp
+
+## BACK-END 
+back-end/bin/
+back-end/obj/
+back-end/back-end/bin/
+back-end/back-end/obj/
+
+# Arquivos de usuário específicos do VS
+back-end/back-end/*.user
+back-end/back-end/*.dbmdl
+back-end/back-end/*.cache
+
+## FRONT-END 
+front-end/node_modules/
+front-end/dist/
+front-end/.vite/
+
+# Logs
+front-end/npm-debug.log*
+front-end/yarn-debug.log*
+front-end/yarn-error.log*
+front-end/pnpm-debug.log*
+
+
+

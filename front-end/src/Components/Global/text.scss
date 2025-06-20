@@ -1,0 +1,6 @@
+//# Use //
+@use '../../Scss/default/text.scss' as text;
+
+.text {
+    color: text.$cor;
+}

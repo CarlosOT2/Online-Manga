@@ -1,0 +1,6 @@
+//.. Utilizado para definir as cores globais do CSS
+@mixin CustomProps($theme-map) {
+  @each $name, $color in $theme-map {
+    --#{$name}: #{$color};
+  }
+}

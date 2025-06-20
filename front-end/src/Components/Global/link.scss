@@ -1,0 +1,10 @@
+//# Use //
+@use '../../Scss/default/text.scss' as text;
+
+.link {
+    color: text.$cor;
+    text-decoration: none;
+    &:hover {
+        color: text.$link-hover;
+    }
+}
