@@ -1,10 +1,12 @@
 //# Use //
 @use '../../Scss/default/text.scss' as text;
+@use '../../Scss/default/transition-time' as transition-time;
 
 .link {
     color: text.$cor;
     text-decoration: none;
     &:hover {
         color: text.$link-hover;
+        transition: color transition-time.$transition-time ease;
     }
 }

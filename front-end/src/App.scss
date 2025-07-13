@@ -1,9 +1,10 @@
-@use './Scss/mixins/CustomProps.scss' as CustomProps;
-@use './Scss/default/text.scss' as text;
+@use './Scss/mixins/CustomProps' as CustomProps;
+@use './Scss/default/text' as text;
 @use './Scss/themes.scss' as themes;
 
 :root {
  @include CustomProps.CustomProps(themes.$light-theme)
+ 
 }
 
 body {

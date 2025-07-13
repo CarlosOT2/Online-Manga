@@ -7,14 +7,6 @@ import './Home.scss'
 
 
 export default function Home() {
-
-    (async function () {
-        const response = await fetch('https://localhost:32771/api/teste');
-        const data = await response.text()
-        console.log(data)
-    })();
-
-
     return (
         <>
             <Popular />

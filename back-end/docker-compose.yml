@@ -9,7 +9,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: root
-      POSTGRES_PASSWORD: cinza123456789
+      POSTGRES_PASSWORD: postgreSQL
       POSTGRES_DB: CatManga
     ports:
       - "5433:5432"

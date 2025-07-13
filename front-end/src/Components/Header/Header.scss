@@ -1,3 +1,8 @@
+//# Use
+@use '../../Scss/default/border-radius' as border-radius;
+@use '../../Scss/default/transition-time' as transition-time;
+@use '../../Scss/mixins/no-select' as no-select;
+
 .header {
     display: flex;
     width: 100%;
@@ -11,6 +16,7 @@
     &__logo {
         height: 100%;
         width: 55px;
+        @include no-select.no-select;
     }
 
     &__nav {
@@ -29,11 +35,35 @@
     }
 
     &__login {
-        display: inline-flex;
-        width: 20%;
-        height: 100%;
+        &-link {
+            text-decoration: none;
 
-        background-color: var(--color1);
-        ;
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+
+
+            width: 150px;
+            height: 50px;
+
+            border-radius: border-radius.$border-radius;
+
+
+            &:hover {
+                background-color: var(--color3);
+                transition: background-color transition-time.$transition-time ease;
+
+                .header__login-icon,
+                .header__login-txt {
+                    color: var(--color1);
+                    transition: color transition-time.$transition-time ease;
+                }
+
+            }
+        }
+
+        &-icon {
+            color: var(--icon-color);
+        }
     }
 }

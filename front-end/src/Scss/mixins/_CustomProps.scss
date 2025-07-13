@@ -1,4 +1,4 @@
-//.. Utilizado para definir as cores globais do CSS
+//.. Used to setup theme colors
 @mixin CustomProps($theme-map) {
   @each $name, $color in $theme-map {
     --#{$name}: #{$color};
