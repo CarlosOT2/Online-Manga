@@ -1,35 +1,38 @@
 //# Components //
 import Link from '../Global/link'
 import Text from '../Global/text'
+//# Libs //
+import { useWindowScroll } from 'react-use';
 //# Classes //
 import './Header.scss'
 //# Icons //
 import { IoPersonSharp } from 'react-icons/io5';
 
 export default function Header() {
-    // Melhorar o titulo, mas acredito que cat manga seria um bom nome e fica do lado da logo
+    const { y } = useWindowScroll()
+    
     return (
         <>
-            <header className='header'>
-                <nav className='header__nav'>
+            <header className={`header ${y > 0 ? 'header--scroll' : ''}`}>
+                <nav className={`header__nav`}>
                     <Link to={'/'} defaultStyle={false}>
-                        <img className='header__logo' src='public/manga-logo.jpg'></img>
+                        <img className='header__logo' src='public/manga-logo.png'></img>
                     </Link>
                     <Link>
-                        POPULARES
+                        POPULAR
                     </Link>
                     <Link>
-                        CATEGORIAS
+                        CATEGORIES
                     </Link>
                     <Link>
-                        ADICIONADOS
+                        ADDED
                     </Link>
                     <Link>
-                        PESQUISA
+                        SEARCH
                     </Link>
                 </nav>
-                <Link className='header__login-link' defaultStyle={false}>
-                    <IoPersonSharp className='header__login-icon' size={40} />
+                <Link className='header__login-link' >
+                    <IoPersonSharp className='header__login-icon' size={35} />
                     <Text tag='span' className='header__login-txt'>
                         Login In
                     </Text>

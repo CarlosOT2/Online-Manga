@@ -2,6 +2,7 @@
 @use '../../Scss/default/border-radius' as border-radius;
 @use '../../Scss/default/transition-time' as transition-time;
 @use '../../Scss/mixins/no-select' as no-select;
+@use '../../Scss/default/text.scss' as text;
 
 .header {
     display: flex;
@@ -10,8 +11,9 @@
 
     justify-content: space-evenly;
     align-items: center;
+    position: fixed;
 
-    background-color: var(--color1);
+    transition: background-color transition-time.$transition-time ease;
 
     &__logo {
         height: 100%;
@@ -31,7 +33,6 @@
         font-size: 15px;
         font-weight: 500;
 
-        background-color: var(--color1);
     }
 
     &__login {
@@ -43,27 +44,31 @@
             justify-content: space-evenly;
 
 
-            width: 150px;
+            width: 125px;
             height: 50px;
 
             border-radius: border-radius.$border-radius;
 
 
             &:hover {
-                background-color: var(--color3);
-                transition: background-color transition-time.$transition-time ease;
 
                 .header__login-icon,
                 .header__login-txt {
-                    color: var(--color1);
+                    color: var(--color3);
                     transition: color transition-time.$transition-time ease;
                 }
-
             }
         }
 
         &-icon {
             color: var(--icon-color);
         }
+    }
+
+    &--scroll {
+        background-color: var(--color1);
+        border-bottom: 1px solid var(--color3);
+
+        transition: background-color transition-time.$transition-time ease
     }
 }

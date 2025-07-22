@@ -12,7 +12,7 @@ namespace back_end.Controllers
     public class Mangas : ControllerBase
     {
         private readonly AppDbContext _context;
-
+        
         public Mangas(AppDbContext context)
         {
             _context = context;
@@ -24,5 +24,7 @@ namespace back_end.Controllers
             var mangas = await _context.Mangas.ToListAsync();
             return Ok(mangas);
         }
+
+
     }
 }

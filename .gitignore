@@ -18,6 +18,7 @@ back-end/bin/
 back-end/obj/
 back-end/back-end/bin/
 back-end/back-end/obj/
+back-end/back-end/Migrations/
 
 # Arquivos de usuário específicos do VS
 back-end/back-end/*.user

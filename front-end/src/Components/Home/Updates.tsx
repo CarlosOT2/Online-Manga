@@ -5,6 +5,8 @@ import { useState, useEffect } from 'react'
 //# Helpers //
 import PerformFetch from '../../Helpers/PerformFetch'
 import chunkArray from '../../Helpers/chunkArray'
+//# Config //
+import { columns, m_perColumn } from '../../config/Home/UpdatesConfig'
 //# Classes //
 import './Updates.scss'
 
@@ -22,8 +24,9 @@ function UpdatesMangas({ data }: { data: manga[] }) {
     a Imagem por enquanto vai ser que está em public, depois que eu configurar o servidor vou utilizar as imagens
     armazenadas em data, que seria 'manga.img'
     */
-    const OrganizedData = chunkArray<manga>(data, 5).slice(0, 4);
-    console.log(OrganizedData.length)
+
+    const OrganizedData = chunkArray<manga>(data, m_perColumn).slice(0, columns);
+    
     return (
         <>
             {

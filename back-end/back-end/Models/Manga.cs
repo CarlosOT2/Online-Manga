@@ -3,14 +3,19 @@
     public class Manga
     {
         public int Id { get; set; }
-        public string nome { get; set; }
-        public string autor { get; set; }
+        public string name { get; set; }
+        public string author { get; set; }
+        public string synopsis { get; set; }
+        public string releaseDate { get; set; }
         public string img { get; set; }
+
 
         public Manga()
         {
-            nome = string.Empty;
-            autor = string.Empty;
+            name = string.Empty;
+            author = string.Empty;
+            synopsis = string.Empty;
+            releaseDate = string.Empty;
             img = string.Empty;
         }
     }
