@@ -15,7 +15,6 @@
         display: flex;
         flex-direction: column;
 
-
         width: 20%;
         height: 40%;
 
@@ -24,25 +23,21 @@
         background-color: var(--color1);
         border-radius: border-radius.$border-radius;
 
-        &-item {
+        &-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-direction: column;
+
+            height: 100%;
+            width: 65%;
+        }
+
+        &-link {
             display: flex;
             align-items: center;
             justify-content: space-evenly;
-
-            width: 100%;
-
-            overflow: hidden;
-
-            &-info {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-
-                flex-direction: column;
-
-                height: 100%;
-                width: 65%;
-            }
         }
 
         &-name {

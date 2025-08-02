@@ -1,0 +1,20 @@
+//# Use //
+@use '../../Scss/default/border-radius' as border-radius;
+@use '../../Scss/default/transition-time' as transition-time;
+
+.button {
+    width: 15%;
+    height: 50px;
+
+    border: 1px solid var(--button-color);
+    border-radius: border-radius.$border-radius;
+    box-shadow: 0px 0px 10px var(--button-shadow);
+    background-color: var(--button-color);
+
+    &:hover {
+        transition: filter transition-time.$transition-time ease;
+
+        cursor: pointer;
+        filter: brightness(80%);
+    }
+}

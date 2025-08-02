@@ -1,32 +1,28 @@
 //# Components //
 import Text from '../Global/text'
+import Link from '../Global/link'
 //# Libs //
 import { useState, useEffect } from 'react'
 //# Helpers //
 import PerformFetch from '../../Helpers/PerformFetch'
 import chunkArray from '../../Helpers/chunkArray'
+//# Types //
+import { title } from '../../Types/title'
 //# Config //
 import { columns, m_perColumn } from '../../config/Home/UpdatesConfig'
 //# Classes //
-import './Updates.scss'
+import './updates.scss'
 
-//.. Tipos
-type manga = {
-    nome: string
-    autor: string
-    img: string
-}
 
-//.. Funções
-
-function UpdatesMangas({ data }: { data: manga[] }) {
+//.. Functions
+function UpdatesMangas({ data }: { data: title[] }) {
     /*
     a Imagem por enquanto vai ser que está em public, depois que eu configurar o servidor vou utilizar as imagens
     armazenadas em data, que seria 'manga.img'
     */
 
-    const OrganizedData = chunkArray<manga>(data, m_perColumn).slice(0, columns);
-    
+    const OrganizedData = chunkArray<title>(data, m_perColumn).slice(0, columns);
+     
     return (
         <>
             {
@@ -34,18 +30,22 @@ function UpdatesMangas({ data }: { data: manga[] }) {
                     <div className='home-updates__mangas' key={`mangas-${s_index}`}>
                         {
                             subArray.map((manga, m_index) => (
-                                <div className='home-updates__mangas-item' key={`item-${m_index}`}>
-                                    <img className={'home-updates__mangas-img'} src={`public/manga-teste.jpg`}>
-                                    </img>
-                                    <div className='home-updates__mangas-item-info'>
-                                        <Text not_exceed={true} className={`home-updates__mangas-name`} tag={'span'}>
-                                            {manga.nome}
-                                        </Text>
-                                        <Text not_exceed={true} className={`home-updates__mangas-author`} tag={'span'}>
-                                            {manga.autor}
-                                        </Text>
-                                    </div>
+                                <div key={`item-${m_index}`}>
+                                    <Link to={`/title/${manga.id}/${manga.name}`} className='home-updates__mangas-link'>
+                                        <img className={'home-updates__mangas-img'} src={`public/manga-teste.jpg`}>
+                                        </img>
+                                        <div className='home-updates__mangas-info'>
+
+                                            <Text not_exceed={true} className={`home-updates__mangas-name`} tag={'span'}>
+                                                {manga.name}
+                                            </Text>
+                                            <Text not_exceed={true} className={`home-updates__mangas-author`} tag={'span'}>
+                                                {manga.author}
+                                            </Text>
+                                        </div>
+                                    </Link>
                                 </div>
+
                             ))
                         }
                     </div>
@@ -58,10 +58,10 @@ function UpdatesMangas({ data }: { data: manga[] }) {
 
 export default function Updates() {
 
-    const [data, setData] = useState<manga[]>([])
+    const [data, setData] = useState<title[]>([])
     // essa data aqui é temporaria, ela apenas pega uma tabela de mangas, para ser usado como teste, utilizado em ambos.
     async function req() {
-        setData(await PerformFetch<manga[]>({ url: 'https://localhost:8081/Mangas' }))
+        setData(await PerformFetch<title[]>({ url: 'https://localhost:8081/title' }))
     }
 
     useEffect(() => {

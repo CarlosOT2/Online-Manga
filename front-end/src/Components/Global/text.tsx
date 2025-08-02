@@ -21,7 +21,7 @@ export default function text({ tag, className, children, title, margin, no_selec
                 ${className || ''}
                 ${title ? 'text-title' : ''}
                 ${margin ? 'text-margin' : ''}
-                ${no_select || title ? 'text-no-select' : ''}
+                ${no_select ? 'text-no-select' : ''}
                 ${not_exceed ? 'text-not-exceed' : ''}
                 `
     return (

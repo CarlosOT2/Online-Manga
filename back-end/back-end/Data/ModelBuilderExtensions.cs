@@ -11,12 +11,12 @@ namespace back_end.Data
         {
             void ModelData<T>(string[] names) where T : class, new()
             {
-                PropertyInfo GenericID = typeof(T).GetProperty("Id");
+                PropertyInfo GenericID = typeof(T).GetProperty("id");
                 PropertyInfo GenericName = typeof(T).GetProperty("name");
 
                 if (GenericID == null || GenericName == null)
                 {
-                    throw new InvalidOperationException("Tipo T deve ter propriedades 'Id' e 'name'");
+                    throw new InvalidOperationException("generic T must have 'id' and 'name' properties");
                 }
 
 

@@ -3,8 +3,7 @@
 @use './Scss/themes.scss' as themes;
 
 :root {
- @include CustomProps.CustomProps(themes.$light-theme)
- 
+    @include CustomProps.CustomProps(themes.$light-theme)
 }
 
 body {

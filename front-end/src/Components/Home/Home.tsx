@@ -1,8 +1,8 @@
 //# Components //
-import Popular from './Popular'
-import Updates from './Updates'
+import Popular from './popular'
+import Updates from './updates'
 //# Classes //
-import './Home.scss'
+import './home.scss'
 
 
 

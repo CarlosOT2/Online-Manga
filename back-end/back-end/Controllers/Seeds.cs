@@ -21,9 +21,10 @@ namespace back_end.Controllers
         [HttpPost]
         public async Task<IActionResult> Seed([FromBody] int rows = 500)
         {
-            await _context.Seed<Manga>("Mangas", rows, new Manga {
-                name = "Manga",
-                author = "Author",
+            await _context.ClearSeed(); 
+
+            await _context.Seed<Title>("Titles", rows, new Title {
+                name = "Manga",    
                 synopsis = "synopsis",
                 releaseDate = "releaseDate",
                 img = "image",

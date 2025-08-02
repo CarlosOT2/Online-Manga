@@ -2,13 +2,9 @@
 {
     public class Theme
     {
-        public int Id { get; set; }
-        public string name { get; set; }
-        
+        public int id { get; set; }
+        public string name { get; set; } = string.Empty;
 
-        public Theme()
-        {
-            name = string.Empty;
-        }
+        public ICollection<Title> Title { get; set; } = new List<Title>();
     }
 }

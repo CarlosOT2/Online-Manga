@@ -2,13 +2,9 @@
 {
     public class Demographic
     {
-        public int Id { get; set; }
-        public string name { get; set; }
+        public int id { get; set; }
+        public string name { get; set; } = string.Empty;
         
 
-        public Demographic()
-        {
-            name = string.Empty;
-        }
     }
 }

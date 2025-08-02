@@ -33,6 +33,9 @@
         font-size: 15px;
         font-weight: 500;
 
+        &__link {
+            white-space: nowrap;
+        }
     }
 
     &__login {

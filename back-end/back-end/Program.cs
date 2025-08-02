@@ -16,9 +16,8 @@ namespace back_end
             builder.Services.AddSwaggerGen();
             //? DB Connection
             builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+            options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
             //? Cors
-
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("front-end",

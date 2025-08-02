@@ -1,5 +1,5 @@
 //# Classes //
-import './Popular.scss'
+import './popular.scss'
 
 export default function Popular() {
     return (
