@@ -1,0 +1,61 @@
+//# Uses //
+@use '../../config/Scss/default/text' as text;
+
+.search {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+
+    &__container-title {
+        display: flex;
+        align-items: flex-end;
+
+        height: 125px;
+        width: 85%;
+
+        gap: 25px;
+
+        &-txt {}
+
+        &-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+    &__inputs {
+        display: flex;
+        align-items: flex-start;
+
+        width: 85%;
+        margin-top: 10px;
+        gap: 15px;
+
+        &-text {
+            font-size: text.$font-size4;
+            width: 80%;
+            height: 34px;
+        }
+
+        &-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            width: 200px;
+            height: 34px;
+
+            gap: 5px;
+
+            &-txt {
+                font-size: text.$font-size5;
+                font-weight: bold;
+                color: var(--color1);
+            }
+        }
+
+    }
+}

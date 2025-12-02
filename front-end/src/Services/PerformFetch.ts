@@ -1,17 +1,17 @@
 //.. Types
-
 type config = {
     method?: string
     headers?: { [key: string]: string }
     body?: string | null
     url: string
 }
+//.. API Url 
+const APIUrl = import.meta.env.VITE_API_URL;
 
 /**
  * **Performs HTTPS request using fetch with provided config**
  *
- * @param config Contains configuration object
- * @returns {Promise<any>} return res.json()
+ * @returns {Promise<any>} return res.json() as T
  * @throws {Error} 
  */
 export default async function PerformFetch<T>(config: config): Promise<T> {
@@ -23,7 +23,10 @@ export default async function PerformFetch<T>(config: config): Promise<T> {
     } = config
 
     try {
-        const res = await fetch(url, { method, headers, body, })
+        const res = await fetch(`${APIUrl}${url}`, { method, headers, body, })
+        if (!res.ok) { 
+            throw new Error(`${res.status} HTTP CODE; ${await res.text()}`) 
+        }
         return res.json() as T
     } catch (err) {
         if (err instanceof Error) {

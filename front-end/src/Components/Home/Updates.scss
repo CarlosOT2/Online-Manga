@@ -1,6 +1,25 @@
 //# Use //
-@use '../../Scss/mixins/no-select' as no-select;
-@use '../../Scss/default/border-radius' as border-radius;
+@use '../../config/Scss/mixins/no-select' as no-select;
+@use '../../config/Scss/default/border-radius' as border-radius;
+@use '../../config/Scss/default//layout' as layout;
+@use '../../config/Scss/default/text' as text;
+
+@mixin box-style {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    height: 15px;
+    width: fit-content;
+    min-width: 60px;
+
+    border-radius: border-radius.$border-radius;
+    background-color: var(--color2);
+
+    color: var(--color1);
+    font-weight: bold;
+    font-size: text.$font-size7;
+}
 
 .home-updates {
     display: flex;
@@ -9,29 +28,26 @@
     align-items: center;
 
     gap: 20px;
-    margin: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
 
-    &__mangas {
-        display: flex;
-        flex-direction: column;
 
-        width: 20%;
-        height: 40%;
-
-        gap: 10px;
-
-        background-color: var(--color1);
-        border-radius: border-radius.$border-radius;
-
+    &__titles {
         &-info {
             display: flex;
-            align-items: center;
-            justify-content: center;
-
             flex-direction: column;
 
             height: 100%;
             width: 65%;
+
+            &__list {
+                margin: 0;
+                padding: 0;
+                list-style: none;
+
+                display: flex;
+                gap: 5px;
+            }
         }
 
         &-link {
@@ -41,19 +57,28 @@
         }
 
         &-name {
-            font-size: 18px;
+            font-size: text.$font-size5;
             font-weight: bold;
             width: 100%;
+
+            margin: 0 0 5px;
         }
 
-        &-author {
-            font-size: 15px;
-            width: 100%;
+
+
+        &-contentRating {
+            @include box-style;
+            background-color: var(--color3);
+        }
+
+        &-demographic {
+            @include box-style;
+            background-color: var(--color2);
         }
 
         &-img {
             border-radius: border-radius.$border-radius;
-            width: 25%;
+            width: 30%;
 
             height: 100%;
             @include no-select.no-select;
@@ -62,12 +87,48 @@
 
     &__section {
         display: flex;
-        justify-content: center;
+        flex-direction: column;
 
-        height: 45%;
-        width: 95%;
+        height: 70%;
+        width: layout.$layout-default-width;
+        ;
 
-        gap: 30px;
+        max-width: layout.$layout-max-width;
+        max-height: layout.$layout-max-height;
+
+        &__container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            width: 100%;
+            height: 100%;
+        }
+
+        &__titles-list {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+
+            display: flex;
+            flex-direction: column;
+
+            width: 24%;
+            height: 40%;
+
+            gap: 10px;
+            border-radius: border-radius.$border-radius;
+
+            background-color: var(--color1);
+
+            li article {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+
+                padding: 3% 3%;
+            }
+        }
     }
 
 

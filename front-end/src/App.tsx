@@ -1,7 +1,8 @@
 //# Components //
 import Home from './Components/Home/home'
 import Header from './Components/Header/header'
-import Title from './Components/Manga/title'
+import Search from './Components/Search/search'
+import Title from './Components/Title/title'
 //# Libs //
 import { Routes, Route } from 'react-router'
 import { useEffect } from 'react'
@@ -25,10 +26,13 @@ export default function App() {
         <>
             <ScrollToTop />
             <Header />
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/title/:id/:name" element={<Title />} />
-            </Routes>
+            <main>
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/search" element={<Search />} />
+                    <Route path="/title/:id/:name" element={<Title />} />
+                </Routes>
+            </main>
         </>
     )
 }

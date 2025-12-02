@@ -1,5 +1,6 @@
 
 using back_end.Data;
+using back_end.Shared.Cache;
 using Microsoft.EntityFrameworkCore;
 
 namespace back_end
@@ -10,13 +11,25 @@ namespace back_end
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            //! Services
+            //# Services
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            //? DB Connection
+
+            //? DB
             builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
+               options.UseNpgsql(
+                   builder.Configuration.GetConnectionString("Default"),
+                   o => o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+               )
+            );
+
+            //? Dependency Injection
+            builder.Services.AddScoped<Database.DbAccess.Interfaces.ITitle, Database.DbAccess.Title>();
+            builder.Services.AddScoped<Database.DbAccess.Interfaces.IStatic, Database.DbAccess.Static>();
+            builder.Services.Configure<CacheSettings>( builder.Configuration.GetSection("CacheSettings"));
+            builder.Services.AddSingleton<CacheHandler>();
+
             //? Cors
             builder.Services.AddCors(options =>
             {
@@ -27,7 +40,9 @@ namespace back_end
                         .AllowAnyHeader());
             });
 
+            //# App
             var app = builder.Build();
+
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {

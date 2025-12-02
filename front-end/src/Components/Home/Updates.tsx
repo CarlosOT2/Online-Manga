@@ -1,54 +1,66 @@
 //# Components //
 import Text from '../Global/text'
 import Link from '../Global/link'
+import Img from '../Global/img'
 //# Libs //
 import { useState, useEffect } from 'react'
-//# Helpers //
-import PerformFetch from '../../Helpers/PerformFetch'
-import chunkArray from '../../Helpers/chunkArray'
+//# Services //
+import { GetAllTitles } from '../../Services/api/FetchTitle'
+//# Utils //
+import chunkArray from '../../Utils/chunkArray'
+import staticMapper from '../../Utils/staticMapper'
 //# Types //
-import { title } from '../../Types/title'
+import { title } from '../../Types/Data/title'
 //# Config //
-import { columns, m_perColumn } from '../../config/Home/UpdatesConfig'
+import { columns, m_perColumn } from '../../config/Components/updates'
 //# Classes //
 import './updates.scss'
 
 
 //.. Functions
-function UpdatesMangas({ data }: { data: title[] }) {
+function UpdatesTitles({ data }: { data: title[] }) {
     /*
     a Imagem por enquanto vai ser que está em public, depois que eu configurar o servidor vou utilizar as imagens
-    armazenadas em data, que seria 'manga.img'
+    armazenadas em data, que seria 'title.img'
     */
 
     const OrganizedData = chunkArray<title>(data, m_perColumn).slice(0, columns);
-     
+
     return (
         <>
             {
                 OrganizedData.map((subArray, s_index) => (
-                    <div className='home-updates__mangas' key={`mangas-${s_index}`}>
+                    <ul className={'home-updates__section__titles-list'} key={`titles-${s_index}`}>
                         {
-                            subArray.map((manga, m_index) => (
-                                <div key={`item-${m_index}`}>
-                                    <Link to={`/title/${manga.id}/${manga.name}`} className='home-updates__mangas-link'>
-                                        <img className={'home-updates__mangas-img'} src={`public/manga-teste.jpg`}>
-                                        </img>
-                                        <div className='home-updates__mangas-info'>
-
-                                            <Text not_exceed={true} className={`home-updates__mangas-name`} tag={'span'}>
-                                                {manga.name}
-                                            </Text>
-                                            <Text not_exceed={true} className={`home-updates__mangas-author`} tag={'span'}>
-                                                {manga.author}
-                                            </Text>
-                                        </div>
+                            subArray.map((title, m_index) => (
+                                <li key={`item-${m_index}`}>
+                                    <Link to={`/title/${title.id}/${title.name}`} className='home-updates__titles-link'>
+                                        <article>
+                                            <Img className={'home-updates__titles-img'} src={`public/manga-teste.jpg`} alt={`Cover of ${title.name}`} />
+                                            <div className='home-updates__titles-info'>
+                                                <Text not_exceed={true} className={`home-updates__titles-name`} tag={'h3'}>
+                                                    {title.name}
+                                                </Text>
+                                                <ul className='home-updates__titles-info__list'>
+                                                    <li>
+                                                        <Text no_select={true} not_exceed={true} className={`home-updates__titles-contentRating`} tag={'span'}>
+                                                            {staticMapper("contentRatings", Number(title.contentRating))}
+                                                        </Text>
+                                                    </li>
+                                                    <li>
+                                                        <Text no_select={true} not_exceed={true} className={`home-updates__titles-demographic`} tag={'span'}>
+                                                            {staticMapper("demographics", Number(title.demographic))}
+                                                        </Text>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </article>
                                     </Link>
-                                </div>
+                                </li>
 
                             ))
                         }
-                    </div>
+                    </ul>
                 ))
             }
 
@@ -59,29 +71,36 @@ function UpdatesMangas({ data }: { data: title[] }) {
 export default function Updates() {
 
     const [data, setData] = useState<title[]>([])
-    // essa data aqui é temporaria, ela apenas pega uma tabela de mangas, para ser usado como teste, utilizado em ambos.
+    // essa data aqui é temporaria, ela apenas pega uma tabela titles, para ser usado como teste, utilizado em ambos.
     async function req() {
-        setData(await PerformFetch<title[]>({ url: 'https://localhost:8081/title' }))
+        setData(await GetAllTitles(50))
     }
+
 
     useEffect(() => {
         req()
     }, [])
 
     return (
-        <section className='home-updates'>
-            <Text tag='span' title={true} margin={true}>
-                Latest Updates
-            </Text>
+        <div className='home-updates'>
+
             <section className='home-updates__section'>
-                <UpdatesMangas data={data} />
+                <Text tag='h2' title={true}>
+                    Latest Updates
+                </Text>
+                <div className='home-updates__section__container'>
+                    <UpdatesTitles data={data} />
+                </div>
             </section>
-            <Text tag='span' title={true} margin={true}>
-                Recently Added
-            </Text>
+
             <section className='home-updates__section'>
-                <UpdatesMangas data={data} />
+                <Text tag='h2' title={true}>
+                    Recently Added
+                </Text>
+                <div className='home-updates__section__container'>
+                    <UpdatesTitles data={data} />
+                </div>
             </section>
-        </section>
+        </div>
     )
 }

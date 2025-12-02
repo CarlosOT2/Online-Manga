@@ -1,19 +1,35 @@
 //# Use
-@use '../../Scss/default/border-radius' as border-radius;
-@use '../../Scss/default/transition-time' as transition-time;
-@use '../../Scss/mixins/no-select' as no-select;
-@use '../../Scss/default/text.scss' as text;
+@use '../../config/Scss/default/border-radius' as border-radius;
+@use '../../config/Scss/default/transition-time' as transition-time;
+@use '../../config/Scss/mixins/no-select' as no-select;
+@use '../../config/Scss/default/text.scss' as text;
+@use '../../config/Scss/default/layout' as layout;
+@use '../../config/Scss/default/header' as header;
 
 .header {
-    display: flex;
-    width: 100%;
-    height: 75px;
-
-    justify-content: space-evenly;
-    align-items: center;
     position: fixed;
 
+    display: flex;
+    justify-content: center;
+
+    width: 100%;
+    height: header.$height-size;
     transition: background-color transition-time.$transition-time ease;
+
+    &__container {
+        position: absolute;
+
+        display: flex;
+        justify-content: space-evenly;
+
+        width: layout.$layout-default-width;
+        height: header.$height-size;
+
+        max-width: layout.$layout-max-width;
+        max-height: layout.$layout-max-height;
+
+        transition: background-color transition-time.$transition-time ease;
+    }
 
     &__logo {
         height: 100%;
@@ -26,20 +42,56 @@
         align-items: center;
 
 
-        width: 50%;
+        width: 30%;
         height: 100%;
-        gap: 3%;
-
-        font-size: 15px;
-        font-weight: 500;
 
         &__link {
             white-space: nowrap;
+            transition: color transition-time.$transition-time ease;
+
+            &:hover {
+                color: var(--color4);
+            }
+        }
+
+        ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6%;
+
+            li {
+                margin: 0;
+                padding: 0;
+
+                width: fit-content;
+                height: fit-content;
+
+                font-size: text.$font-size5;
+                font-weight: 500;
+            }
         }
     }
 
-    &__login {
-        &-link {
+    &__actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+
+        width: 30%;
+        gap: 3%;
+
+        button {
+            all: unset;
+
+            cursor: pointer;
+        }
+
+        &__login {
             text-decoration: none;
 
             display: flex;
@@ -50,28 +102,25 @@
             width: 125px;
             height: 50px;
 
-            border-radius: border-radius.$border-radius;
 
+            span {
+                transition: background-color transition-time.$transition-time ease, color transition-time.$transition-time ease;
+                padding: 7.5px 20px;
+                border-radius: border-radius.$border-radius;
+            }
 
             &:hover {
-
-                .header__login-icon,
-                .header__login-txt {
-                    color: var(--color3);
-                    transition: color transition-time.$transition-time ease;
+                span {
+                    background-color: var(--color4);
+                    color: var(--color1);
                 }
             }
-        }
 
-        &-icon {
-            color: var(--icon-color);
         }
     }
 
     &--scroll {
         background-color: var(--color1);
-        border-bottom: 1px solid var(--color3);
-
-        transition: background-color transition-time.$transition-time ease
+        border-bottom: 1px solid var(--color4);
     }
 }

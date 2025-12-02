@@ -1,13 +1,15 @@
-@use './Scss/mixins/CustomProps' as CustomProps;
-@use './Scss/default/text' as text;
-@use './Scss/themes.scss' as themes;
+//# Uses //
+@use './config/Scss/mixins/CustomProps' as CustomProps;
+@use './config/Scss/default/text' as text;
+@use './config/Scss/themes.scss' as themes;
 
 :root {
-    @include CustomProps.CustomProps(themes.$light-theme)
+    @include CustomProps.CustomProps(themes.$light-theme);
 }
 
 body {
     margin: 0;
+    padding: 0;
     background-color: var(--background-color);
     font-family: text.$font-family;
 }

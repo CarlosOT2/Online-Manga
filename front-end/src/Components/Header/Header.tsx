@@ -1,40 +1,67 @@
 //# Components //
 import Link from '../Global/link'
 import Text from '../Global/text'
+import Button from '../Global/button'
+import Img from '../Global/img'
 //# Libs //
 import { useWindowScroll } from 'react-use'
 //# Classes //
 import './header.scss'
 //# Icons //
-import { IoPersonSharp } from 'react-icons/io5'
+import { FaMagnifyingGlass } from "react-icons/fa6";
+
+
 
 export default function Header() {
+    //.. Variables //
     const { y } = useWindowScroll()
+
+    //.. Components //
+    function Logo() {
+        return (
+            <Link to={'/'} defaultStyle={false} ariaLabel={'Go to home'}>
+                <Img className={'header__logo'} src={'/manga-logo.png'} alt='logo' />
+            </Link>
+        )
+    }
 
     return (
         <>
             <header className={`header ${y > 0 ? 'header--scroll' : ''}`}>
-                <nav className={`header__nav`}>
-                    <Link to={'/'} defaultStyle={false}>
-                        <img className='header__logo' src='../../../public/manga-logo.png'></img>
-                    </Link>
-                    <Link className='header__nav__link'>
-                        SEARCH
-                    </Link>
-                    <Link className='header__nav__link'>
-                        LATEST UPDATES
-                    </Link>
-                    <Link className='header__nav__link'>
-                        RECENTLY ADDED
-                    </Link>
-                </nav>
-                <Link className='header__login-link' >
-                    <IoPersonSharp className='header__login-icon' size={35} />
-                    <Text tag='span' className='header__login-txt'>
-                        Login In
-                    </Text>
-
-                </Link>
+                <div className={`header__container`}>
+                    <nav className={`header__nav`}>
+                        <ul>
+                            <li>
+                                <Logo />
+                            </li>
+                            <li>
+                                <Link to={'/search'} className='header__nav__link'>
+                                    SEARCH
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to={'/latestupdates'} className='header__nav__link'>
+                                    LATEST UPDATES
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to={'/recentlyadded'} className='header__nav__link'>
+                                    RECENTLY ADDED
+                                </Link>
+                            </li>
+                        </ul>
+                    </nav>
+                    <section className='header__actions'>
+                        <Link className='header__actions__login' >
+                            <Text tag='span' no_select={true}>
+                                Login In
+                            </Text>
+                        </Link>
+                        <Button defaultStyle={false} ariaLabel={'search titles'}>
+                            <FaMagnifyingGlass />
+                        </Button>
+                    </section>
+                </div>
             </header>
         </>
     )

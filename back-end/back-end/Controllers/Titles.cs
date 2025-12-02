@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using back_end.Models; 
 using back_end.Data;
-using Microsoft.EntityFrameworkCore;
+using back_end.Database.DbAccess.Interfaces;
+using back_end.Shared.Core;
 
 namespace back_end.Controllers
 {
@@ -10,40 +10,50 @@ namespace back_end.Controllers
     public class TitleController : ControllerBase
     {
         private readonly AppDbContext _context;
-        
-        public TitleController(AppDbContext context)
+        private readonly ITitle _dbAccess;
+
+        public TitleController(AppDbContext context, ITitle dbAccess)
         {
             _context = context;
+            _dbAccess = dbAccess;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Title>>> GetAll([FromQuery] int? id, [FromQuery] string? name)
+        public async Task<ActionResult<List<DTOs.Title>>> GetTitle([FromQuery] int? id, [FromQuery] int? limit)
         {
             //? Verifications
-            if (id.HasValue ^ !string.IsNullOrEmpty(name))
-            {
-                return BadRequest("Both queries id and name must have values, otherwise database query will not be performed");
-            }
+            if (!id.HasValue && !limit.HasValue)
+                return BadRequest("You must provide at least one parameter: 'id' or 'limit'.");
 
             //? Variables
-            IQueryable<Title> query = _context.Titles;
+            Result<List<DTOs.Title>> result = id.HasValue
+                ? await _dbAccess.GetTitleById(id.Value)
+                : await _dbAccess.GetTitleByLimit(limit!.Value);
 
-            //? Specific Title
-            if (id.HasValue && !string.IsNullOrEmpty(name))
-            {
-                Title? title = await query
-                    .Where(t => t.id == id.Value && t.name == name)
-                    .FirstOrDefaultAsync();
+            if (result.IsFailure)
+                return StatusCode(500, "Server Failure");
 
-                if (title == null)
-                    return NotFound();
+            if (result.Value!.Count <= 0 && id.HasValue)
+                return NotFound();
 
-                return Ok(title);
-            }
+            return Ok(result.Value);
+        }
 
-            //? All Titles
-            List<Title> titles = await query.ToListAsync();
-            return Ok(titles);
+        [HttpGet("search")]
+        public async Task<ActionResult<List<DTOs.Title>>> SearchTitle(
+            [FromQuery] string? name,
+            [FromQuery] string[]? authors,
+            [FromQuery] string[]? artists,
+            [FromQuery] int? publicationYear,
+            [FromQuery] int[]? statusIds,
+            [FromQuery] int[]? contentRatingIds,
+            [FromQuery] int[]? demographicIds,
+            [FromQuery] int[]? genresIds,
+            [FromQuery] int[]? themesIds
+            )
+        {
+            // Vou fazer depois essa função, preciso terminar as mais basicas antes que seria o gettitle basico.
+            return new List<DTOs.Title>();
         }
     }
 }

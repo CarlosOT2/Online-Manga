@@ -1,9 +1,9 @@
 /**
- * **Filters classes, fixing their text**
+ * **Splits an array into subarrays of specified size**
  *
  * @param arr Contains the array
  * @param size Max size per sub-array 
- * @returns return Filtered Classes
+ * @returns An array of subarrays
  */
 export default function chunkArray<T>(arr: T[], size: number) {
   const chunks: T[][] = [];

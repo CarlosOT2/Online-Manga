@@ -1,10 +1,35 @@
+//# Use
+@use '../../config/Scss/default/layout' as layout;
+@use '../../config/Scss/default/border-radius' as border-radius;
+
 .home-popular {
     display: flex;
     align-items: center;
     justify-content: center;
 
     width: 100%;
-    height: 550px;
-    
-    background: linear-gradient(to bottom, var(--color1), var(--color3));
+    height: fit-content;
+
+    background: linear-gradient(to bottom, var(--color1), var(--color4));
+
+    &__container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        width: 100%;
+        height: fit-content;
+
+        max-width: layout.$layout-max-width / 1.25;
+        max-height: layout.$layout-max-height;
+
+        padding-top: 150px;
+        padding-bottom: 150px;
+
+        &__template-img {
+            height: 100%;
+            width: 11%;
+            border-radius: border-radius.$border-radius;
+        }
+    }
 }
