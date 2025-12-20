@@ -12,10 +12,10 @@
         public int ContentRating { get; set; } = -1;
         public int Demographic { get; set; } = -1;
 
-        public List<int> genres { get; set; } = new();
-        public List<int> themes { get; set; } = new();
-        public List<string> authors { get; set; } = new();
-        public List<string> artists { get; set; } = new();
+        public IEnumerable<int> genres { get; set; } = new List<int>();
+        public IEnumerable<int> themes { get; set; } = new List<int>();
+        public IEnumerable<string> authors { get; set; } = new List<string>();
+        public IEnumerable<string> artists { get; set; } = new List<string>();
 
     }
 }

@@ -2,6 +2,8 @@
 using back_end.Data;
 using back_end.Database.DbAccess.Interfaces;
 using back_end.Shared.Core;
+using Microsoft.AspNetCore.Http.HttpResults;
+using System.Collections.Generic;
 
 namespace back_end.Controllers
 {
@@ -21,6 +23,8 @@ namespace back_end.Controllers
         [HttpGet]
         public async Task<ActionResult<List<DTOs.Title>>> GetTitle([FromQuery] int? id, [FromQuery] int? limit)
         {
+
+            System.Diagnostics.Debug.WriteLine("Title");
             //? Verifications
             if (!id.HasValue && !limit.HasValue)
                 return BadRequest("You must provide at least one parameter: 'id' or 'limit'.");
@@ -44,16 +48,30 @@ namespace back_end.Controllers
             [FromQuery] string? name,
             [FromQuery] string[]? authors,
             [FromQuery] string[]? artists,
-            [FromQuery] int? publicationYear,
-            [FromQuery] int[]? statusIds,
-            [FromQuery] int[]? contentRatingIds,
-            [FromQuery] int[]? demographicIds,
             [FromQuery] int[]? genresIds,
-            [FromQuery] int[]? themesIds
+            [FromQuery] int[]? themesIds,
+            [FromQuery] int? publicationYear,
+            [FromQuery] int? statusId,
+            [FromQuery] int? demographicId,
+            [FromQuery] int? contentRatingId
             )
         {
-            // Vou fazer depois essa função, preciso terminar as mais basicas antes que seria o gettitle basico.
-            return new List<DTOs.Title>();
+            Result<List<DTOs.Title>> result = await _dbAccess.GetTitlesByFilters(
+                name,
+                authors,
+                artists,
+                genresIds,
+                themesIds,
+                publicationYear,
+                demographicId,
+                statusId,
+                contentRatingId
+                );
+
+            if (result.IsFailure)
+                return StatusCode(500, "Server Failure");
+
+            return result.Value;
         }
     }
 }

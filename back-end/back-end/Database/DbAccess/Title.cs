@@ -14,10 +14,11 @@ namespace back_end.Database.DbAccess
             _context = context;
         }
 
-        private IQueryable<DTOs.Title> GetQueryDTO()
+        private IQueryable<DTOs.Title> BuildQuery()
         {
-            IQueryable<DTOs.Title> queryDTO = _context.Titles
+            return _context.Titles
             .AsNoTracking()
+            .AsSplitQuery()
             .Select(t => new DTOs.Title
             {
                 id = t.id,
@@ -30,21 +31,25 @@ namespace back_end.Database.DbAccess
                 ContentRating = t.ContentRating.id,
                 Demographic = t.Demographic.id,
 
-                authors = t.Author.Select(a => a.name).ToList(),
-                artists = t.Artist.Select(a => a.name).ToList(),
-                genres = t.Genre.Select(g => g.id).ToList(),
-                themes = t.Theme.Select(th => th.id).ToList()
+                authors = t.Author.Select(a => a.name),
+                artists = t.Artist.Select(a => a.name),
+                genres = t.Genre.Select(g => g.id),
+                themes = t.Theme.Select(th => th.id)
             });
+        }
 
-            return queryDTO;
+        private async Task<List<DTOs.Title>> RunQuery(IQueryable<DTOs.Title> query)
+        {
+            return await query.ToListAsync();
         }
 
         public async Task<Result<List<DTOs.Title>>> GetTitleByLimit(int limit)
         {
             try
             {
-                IQueryable<DTOs.Title> query = GetQueryDTO();
-                List<DTOs.Title> titles = await query.Take(limit).ToListAsync();
+                IQueryable<DTOs.Title> query = BuildQuery();
+                query = query.Take(limit);
+                List<DTOs.Title> titles = await RunQuery(query);
                 return Result<List<DTOs.Title>>.Success(titles);
             }
             catch (Exception ex)
@@ -57,10 +62,10 @@ namespace back_end.Database.DbAccess
         {
             try
             {
-                IQueryable<DTOs.Title> query = GetQueryDTO();
-                List<DTOs.Title> title = await query
-                        .Where(t => t.id == id)
-                        .ToListAsync();
+                IQueryable<DTOs.Title> query = BuildQuery();
+                query = query.Where(t => t.id == id);
+                List<DTOs.Title> title = await RunQuery(query);
+
                 return Result<List<DTOs.Title>>.Success(title);
             }
             catch (Exception ex)
@@ -72,40 +77,55 @@ namespace back_end.Database.DbAccess
             string? name,
             string[]? authors,
             string[]? artists,
-            int? publicationYear,
-            int[]? statusIds,
-            int[]? contentRatingIds,
-            int[]? demographicIds,
             int[]? genresIds,
-            int[]? themesIds
+            int[]? themesIds,
+            int? publicationYear,
+            int? demographicId,
+            int? statusId,
+            int? contentRatingId
             )
         {
             try
             {
-                //? Variables
-                IQueryable<DTOs.Title> query = GetQueryDTO();
+                IQueryable<DTOs.Title> query = BuildQuery();
 
                 //? Name
-                if (!string.IsNullOrEmpty(name))
-                    query = query.Where(t => t.name.Contains(name));
+                if (!string.IsNullOrWhiteSpace(name))
+                    query = query.Where(t => EF.Functions.ILike(t.name, $"%{name}%"));
+
+                //? Authors
+                if (authors?.Length >= 1)
+                    query = query.Where(t => authors.All(a => t.authors.Any(aut => EF.Functions.ILike(aut, "%" + a + "%"))));
+
+                //? Artists
+                if (artists?.Length >= 1)
+                    query = query.Where(t => artists.All(a => t.artists.Any(art => EF.Functions.ILike(art, "%" + a + "%"))));
+
+                //? Genres
+                if (genresIds?.Length >= 1)
+                    query = query.Where(t => genresIds.All(id => t.genres.Contains(id)));
+
+                //? Themes
+                if (themesIds?.Length >= 1)
+                    query = query.Where(t => themesIds.All(id => t.themes.Contains(id)));
 
                 //? Publication Year
                 if (publicationYear.HasValue)
-                {
-                    int year = publicationYear.Value;
-                    query = query.Where(t => t.publicationDate.Year == year);
-                }
-                //? Authors
-                if (authors != null && authors.Length >= 1)
-                    query = query.Where(t => t.authors.Any(a => authors.Contains(a)));
-                
-                //? Artists
-                if (artists != null && artists.Length >= 1)
-                    query = query.Where(t => t.artists.Any(a => artists.Contains(a)));
-                
+                    query = query.Where(t => t.publicationDate.Year == publicationYear.Value);
 
-                List<DTOs.Title> titles = await query.ToListAsync();
+                //? Demographic
+                if (demographicId.HasValue)
+                    query = query.Where(t => t.Demographic == demographicId.Value);
 
+                //? Status
+                if (statusId.HasValue)
+                    query = query.Where(t => t.Status == statusId.Value);
+
+                //? Content Rating
+                if (contentRatingId.HasValue)
+                    query = query.Where(t => t.ContentRating == contentRatingId.Value);
+
+                List<DTOs.Title> titles = await RunQuery(query);
                 return Result<List<DTOs.Title>>.Success(titles);
             }
             catch (Exception ex)
