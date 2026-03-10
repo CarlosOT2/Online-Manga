@@ -6,12 +6,12 @@ import Img from '../Global/img'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 //# Services //
-import { GetTitleById } from '../../Services/api/FetchTitle'
+import { GetTitleById } from '../../Shared/api/FetchTitle'
 //# Utils //
-import staticMapper from '../../Utils/staticMapper'
+import staticMapper from '../../Shared/utils/staticMapper'
 //# Types //
-import { title, titlemetakeys } from '../../Types/Data/title'
-import { staticDataArray } from '../../Types/Data/static'
+import { title, titlemetakeys } from '../../Shared/types/Data/title'
+import { staticDataArray } from '../../Shared/types/Data/static'
 //# Config //
 import { metanames } from '../../config/Components/title'
 //# Classes //

@@ -1,7 +1,7 @@
 //# Uses //
-@use './config/Scss/mixins/CustomProps' as CustomProps;
-@use './config/Scss/default/text' as text;
-@use './config/Scss/themes.scss' as themes;
+@use './Shared/styles/mixins/CustomProps' as CustomProps;
+@use './Shared/styles/default/text' as text;
+@use './Shared/styles/themes' as themes;
 
 :root {
     @include CustomProps.CustomProps(themes.$light-theme);

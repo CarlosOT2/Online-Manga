@@ -1,5 +1,5 @@
 //# Utils //
-import FilterClasses from '../../Utils/FilterClasses'
+import FilterClasses from '../../Shared/utils/FilterClasses'
 
 type Img = {
     /** src of the image */

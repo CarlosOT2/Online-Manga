@@ -1,19 +1,6 @@
 //# Use //
-@use '../../config/Scss/default/border-radius' as border-radius;
-@use '../../config/Scss/default/transition-time' as transition-time;
+@use '../../Shared/styles/default/button' as button;
 
 .button {
-    width: 17.5%;
-    height: 50px;
-
-    border: 1px solid var(--button-color);
-    border-radius: border-radius.$border-radius;
-    background-color: var(--button-color);
-
-    &:hover, &:focus {
-        transition: filter transition-time.$transition-time ease;
-
-        cursor: pointer;
-        filter: brightness(80%);
-    }
+    @include button.button-style;
 }

@@ -1,6 +1,6 @@
 //# Use
-@use '../../config/Scss/default/layout' as layout;
-@use '../../config/Scss/default/border-radius' as border-radius;
+@use '../../Shared/styles/default/layout' as layout;
+@use '../../Shared/styles/default/border-radius' as border-radius;
 
 .home-popular {
     display: flex;

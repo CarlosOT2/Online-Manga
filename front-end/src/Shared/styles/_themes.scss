@@ -3,16 +3,19 @@ $light-theme: (
     background-color: rgb(245, 245, 245),
     //.. Colors 
     color1: rgb(255, 255, 255),
-    color2: rgb(200, 200, 200),
+    color2: rgb(170, 170, 170),
     color3: rgb(7, 167, 241),
     color4: rgb(138, 209, 241),
-    
-    
-    //.. Button
-    button-color: rgb(0, 153, 255),
-    button-shadow: rgb(58, 58, 58),
+    color5: rgb(0, 136, 199),
+
     //.. Text
     text-color: black,
     //.. Icon
-    icon-color: rgb(0, 0, 0)
+    icon-color: rgb(0, 0, 0),
+
+    //.. Others
+    true: rgb(0, 175, 0),
+    true-transparent: rgba(0, 175, 0, 0.2),
+
+    false: rgb(220, 0, 0),
 )

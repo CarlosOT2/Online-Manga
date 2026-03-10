@@ -1,5 +1,5 @@
 //# Utils //
-import FilterClasses from '../../Utils/FilterClasses'
+import FilterClasses from '../../Shared/utils/FilterClasses'
 //# Classes //
 import './text.scss'
 //# Namespaces //
@@ -18,8 +18,16 @@ interface textProps {
     margin?: boolean
     /** makes the text unselectable */
     no_select?: boolean
-    /** limits text to the size of its parent and shows "..." if it overflows */
-    not_exceed?: boolean
+    /** 
+      * Prevents the text from exceeding parent's width
+      * If the content overflows horizontally, it will be truncated and display an ellipsis ("...")
+    */
+    not_exceed_X?: boolean
+    /**
+      * Prevents the text from exceeding the parent's height
+      * If it overflows vertically, a scrollbar is displayed to allow scrolling
+    */
+    not_exceed_Y?: boolean
     /** splits text into paragraphs using the given string as delimiter */
     split_paragraph?: string
     /** when the text should be screen reader only */
@@ -46,7 +54,7 @@ function splitParagraph(tag: keyof React.JSX.IntrinsicElements, text: string, sp
     return paragraphs
 }
 
-export default function Text({ tag, className, children, title, margin, no_select, not_exceed, split_paragraph, sr_only }: textProps) {
+export default function Text({ tag, className, children, title, margin, no_select, not_exceed_X, not_exceed_Y, split_paragraph, sr_only }: textProps) {
     const TxtTag: keyof React.JSX.IntrinsicElements = tag
 
     const frmtd_className: string = FilterClasses(`
@@ -55,7 +63,8 @@ export default function Text({ tag, className, children, title, margin, no_selec
                 ${title ? 'text-title' : ''}
                 ${margin ? 'text-margin' : ''}
                 ${no_select ? 'text-no-select' : ''}
-                ${not_exceed ? 'text-not-exceed' : ''}
+                ${not_exceed_X ? 'text-not-exceed-x' : ''}
+                ${not_exceed_Y ? 'text-not-exceed-y' : ''}
                 ${sr_only ? 'text-sr-only' : ''}
                 `)
     return (

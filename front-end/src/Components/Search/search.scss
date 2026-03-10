@@ -1,5 +1,11 @@
 //# Uses //
-@use '../../config/Scss/default/text' as text;
+@use '../../Shared/styles/default/text' as text;
+@use '../../Shared/styles/default/layout' as layout;
+@use '../../Shared/styles/default/header' as header;
+@use '../../Shared/styles/default/border-radius' as border-radius;
+@use '../../Shared/styles/default/input' as input;
+@use '../../Shared/styles/default/transition-time' as transition-time;
+@use '../../Shared/styles/default/button' as button;
 
 .search {
     display: flex;
@@ -10,52 +16,268 @@
 
     &__container-title {
         display: flex;
-        align-items: flex-end;
+        height: fit-content;
+        width: 100%;
 
-        height: 125px;
-        width: 85%;
+        width: layout.$layout-default-width;
 
-        gap: 25px;
+        margin-top: header.$height-size + 50px;
+        margin-bottom: 10px;
+        gap: 30px;
 
-        &-txt {}
+        h2 {
+            margin: 0;
+            font-size: text.$font-size2;
+        }
 
-        &-link {
+        a {
             display: flex;
             align-items: center;
             justify-content: center;
         }
     }
 
-    &__inputs {
+    &__form {
         display: flex;
-        align-items: flex-start;
+        justify-content: space-between;
+        flex-direction: column;
 
-        width: 85%;
-        margin-top: 10px;
-        gap: 15px;
+        width: layout.$layout-default-width;
+        height: fit-content;
 
-        &-text {
-            font-size: text.$font-size4;
-            width: 80%;
-            height: 34px;
+        gap: 1%;
+
+        &-inputs {
+            display: flex;
+            align-items: flex-start;
+
+            width: 100%;
+            height: 40px;
+
+            margin-top: 10px;
+            gap: 15px;
+
+            &__input {
+                font-size: text.$font-size4;
+                width: 80%;
+                height: 100%;
+            }
+
+            &__button {
+
+                &-filter,
+                &-submit {
+                    span {
+                        font-size: text.$font-size5;
+                        font-weight: bold;
+                        color: var(--color1);
+                    }
+                }
+
+                &-filter {
+                    @include button.button-border(var(--color2));
+
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    width: 200px;
+                    height: 100%;
+
+                    background-color: var(--color2);
+
+                    gap: 5px;
+                }
+
+                &-submit {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    width: 150px;
+                    height: 100%;
+                }
+
+            }
         }
+    }
+
+    &__filters {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+
+        width: 100%;
+        height: fit-content;
+
+        gap: 3%;
+        row-gap: 30px;
+
+        margin-top: 20px;
+
+        width: layout.$layout-default-width;
 
         &-button {
+            @include input.input-style;
+
             display: flex;
             align-items: center;
-            justify-content: center;
 
-            width: 200px;
-            height: 34px;
+            width: 100%;
+            height: 50%;
 
-            gap: 5px;
+            transition: filter transition-time.$transition-time ease;
 
-            &-txt {
+            &:focus {
+                filter: brightness(95%);
+            }
+
+            span {
+                display: flex;
+                align-items: center;
+
+                margin-left: 2.5%;
+
                 font-size: text.$font-size5;
-                font-weight: bold;
-                color: var(--color1);
             }
         }
 
+        &-item {
+            position: relative;
+
+            display: flex;
+            justify-content: space-between;
+            flex-direction: column;
+
+            width: 100%;
+            height: 60px;
+
+            &__options {
+                position: absolute;
+                top: 100%;
+
+                width: 100%;
+                height: fit-content;
+                max-height: 450px;
+
+                margin-top: 10px;
+
+                border-radius: border-radius.$border-radius;
+                border: 1px solid var(--color2);
+                background-color: var(--color1);
+
+                padding-top: 10px;
+                padding-bottom: 10px;
+
+                overflow: auto;
+                z-index: 1;
+
+                h4 {
+                    margin: 0;
+                    font-weight: 500;
+
+                    display: flex;
+                    justify-content: space-evenly;
+                    align-items: center;
+
+                    font-size: text.$font-size4 ;
+                }
+
+                &--faceted {
+                    width: 250%;
+
+                    section {
+                        ul {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 0.5rem;
+
+                            li {
+                                list-style: none;
+
+                                display: flex;
+                                justify-content: center;
+                                align-items: center;
+
+                                width: fit-content;
+                                height: fit-content;
+
+                                input {}
+
+
+
+
+                            }
+                        }
+                    }
+
+                }
+
+                &--singleselect {
+                    ul {
+                        margin: 0;
+                        padding: 0;
+
+                        display: flex;
+                        flex-direction: column;
+
+                        margin-left: 7%;
+                        gap: 0.25rem;
+
+                        li {
+                            list-style: none;
+
+                            label {
+                                display: flex;
+                                width: 100%;
+
+                                gap: 5%;
+
+
+                                span {
+                                    font-size: text.$font-size5;
+                                }
+                            }
+                        }
+
+                    }
+                }
+
+                &--selectaddiction,
+                &--searchnumber {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+
+                }
+
+                &__input {
+                    width: 92.5%;
+                    height: 27.5px;
+                }
+
+
+                &__title-line {
+                    display: flex;
+                    width: 82.5%;
+                    height: 1px;
+
+                    background-color: var(--color2);
+                }
+            }
+
+            h3 {
+                margin: 0;
+                font-weight: normal;
+
+                font-size: text.$font-size5;
+                height: 35%;
+            }
+        }
+    }
+
+    &__result {
+        margin-top: 20px;
+        max-width: layout.$layout-default-width;
     }
 }

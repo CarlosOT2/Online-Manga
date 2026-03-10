@@ -1,6 +1,6 @@
 //# Use //
-@use '../../config/Scss/default/text.scss' as text;
-@use '../../config/Scss/mixins/no-select' as no-select;
+@use '../../Shared/styles/default/text.scss' as text;
+@use '../../Shared/styles/mixins/no-select' as no-select;
 
 .text {
     display: flex;
@@ -38,10 +38,19 @@
     }
 
     &-not-exceed {
-        display: block;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
+        &-x {
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 0;
+            min-width: 100%;
+        }
+
+        &-y {
+            position: relative;
+            max-height: 9.5em;
+            overflow: hidden;
+        }
     }
 }

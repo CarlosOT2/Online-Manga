@@ -1,5 +1,5 @@
 //# Services //
-import { GetAllStatic } from '../Services/api/FetchStatic'
+import { GetAllStatic } from '../api/FetchStatic'
 
 //.. Variáveis Globais //
 const staticData = await GetAllStatic()

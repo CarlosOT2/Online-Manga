@@ -1,6 +1,6 @@
 //# Use //
-@use '../../config/Scss/default/text.scss' as text;
-@use '../../config/Scss/default/transition-time' as transition-time;
+@use '../../Shared/styles/default/text.scss' as text;
+@use '../../Shared/styles/default/transition-time' as transition-time;
 
 .link {
     color: text.$cor;

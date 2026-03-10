@@ -1,9 +1,9 @@
 //# Use //
-@use '../../config/Scss/mixins/no-select' as no-select;
-@use '../../config/Scss/default/border-radius' as border-radius;
-@use '../../config/Scss/default/text' as text;
-@use '../../config/Scss/default/layout' as layout;
-@use '../../config/Scss/default/header' as header;
+@use '../../Shared/styles/mixins/no-select' as no-select;
+@use '../../Shared/styles/default/border-radius' as border-radius;
+@use '../../Shared/styles/default/text' as text;
+@use '../../Shared/styles/default/layout' as layout;
+@use '../../Shared/styles/default/header' as header;
 
 $text-shadow: 0px 0px 15px var(--text-color);
 
@@ -143,7 +143,7 @@ $text-shadow: 0px 0px 15px var(--text-color);
             margin: 0;
 
             display: grid;
-            grid-template-columns: 1fr 1fr; 
+            grid-template-columns: 1fr 1fr;
             flex-direction: column;
 
             width: fit-content;
@@ -182,7 +182,7 @@ $text-shadow: 0px 0px 15px var(--text-color);
                 align-items: center;
 
                 height: 20px;
-      
+
                 width: fit-content;
                 min-width: 60px;
 
@@ -234,7 +234,10 @@ $text-shadow: 0px 0px 15px var(--text-color);
         justify-content: center;
 
         gap: 7px;
-        box-shadow: 0px 0px 10px var(--button-shadow);
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+
+        width: 17.5%;
+        height: 50px;
 
         &-icon {
             color: var(--color1);

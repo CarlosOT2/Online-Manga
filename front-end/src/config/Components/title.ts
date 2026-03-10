@@ -1,6 +1,9 @@
 //# Types //
-import { titlemetakeys } from '../../Types/Data/title'
-import { staticDataArray } from '../../Types/Data/static'
+import { titlemetakeys } from '../../Shared/types/Data/title'
+import { staticDataArray } from '../../Shared/types/Data/static'
+
+type titlemetanames = Record<titlemetakeys, { metaname: string; statickey?: keyof staticDataArray }>
+type titlegrid = { [keyof: string]: { columns: number, items: number } }
 
 /**
  * Mapping of which title metadata fields will be displayed in the `title` route.
@@ -23,7 +26,7 @@ import { staticDataArray } from '../../Types/Data/static'
  *  - When necessary, it converts IDs from the title into readable strings using static data.
  *  - It allows customizing labels and linking each type of metadata to its corresponding static dataset.
  */
-const metanames: Record<titlemetakeys, { metaname: string; statickey?: keyof staticDataArray }> = {
+const metanames: titlemetanames = {
     authors: {
         metaname: 'Author'
     },
@@ -52,4 +55,28 @@ const metanames: Record<titlemetakeys, { metaname: string; statickey?: keyof sta
     }
 };
 
-export { metanames };
+/**
+ * **Grid configuration for the TitleGrid component.**
+ *
+ * **Each key represents a variant of the grid.**
+ *
+ * Properties:
+ * - columns: Number of columns the grid will display.
+ * - items: Number of items per column.
+ */
+const grid: titlegrid = {
+    card: {
+        columns: 2,
+        items: 20
+    },
+    compact: {
+        columns: 4,
+        items: 5
+    },
+    hero: {
+        columns: 1,
+        items: 1
+    }
+}
+
+export { metanames, grid };

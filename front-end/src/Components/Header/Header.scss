@@ -1,10 +1,11 @@
 //# Use
-@use '../../config/Scss/default/border-radius' as border-radius;
-@use '../../config/Scss/default/transition-time' as transition-time;
-@use '../../config/Scss/mixins/no-select' as no-select;
-@use '../../config/Scss/default/text.scss' as text;
-@use '../../config/Scss/default/layout' as layout;
-@use '../../config/Scss/default/header' as header;
+@use '../../Shared/styles/default/border-radius' as border-radius;
+@use '../../Shared/styles/default/transition-time' as transition-time;
+@use '../../Shared/styles/mixins/no-select' as no-select;
+@use '../../Shared/styles/default/text.scss' as text;
+@use '../../Shared/styles/default/layout' as layout;
+@use '../../Shared/styles/default/header' as header;
+@use '../../Shared/styles/default/button' as button;
 
 .header {
     position: fixed;
@@ -16,6 +17,8 @@
     height: header.$height-size;
     transition: background-color transition-time.$transition-time ease;
 
+    z-index: 2;
+    
     &__container {
         position: absolute;
 
@@ -83,7 +86,7 @@
         align-items: center;
 
         width: 30%;
-        gap: 3%;
+        gap: 10%;
 
         button {
             all: unset;
@@ -92,30 +95,21 @@
         }
 
         &__login {
+            @include button.button-style;
+
             text-decoration: none;
 
             display: flex;
             align-items: center;
             justify-content: space-evenly;
 
+            width: 90px;
+            height: 30px;
 
-            width: 125px;
-            height: 50px;
-
-
-            span {
-                transition: background-color transition-time.$transition-time ease, color transition-time.$transition-time ease;
-                padding: 7.5px 20px;
+            span {    
                 border-radius: border-radius.$border-radius;
+                color: var(--color1);
             }
-
-            &:hover {
-                span {
-                    background-color: var(--color4);
-                    color: var(--color1);
-                }
-            }
-
         }
     }
 
