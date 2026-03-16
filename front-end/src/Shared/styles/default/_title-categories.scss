@@ -1,0 +1,44 @@
+//# Use //
+@use './border-radius' as border-radius;
+@use './text' as text;
+
+@mixin base-style($color, $size) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: fit-content;
+    font-weight: bold;
+
+    @if $size =='small' {
+        height: 15px;
+        min-width: 55px;
+        font-size: text.$font-size7;
+    } @else if $size == 'medium' {
+        height: 17px;
+        min-width: 85px;
+        font-size: text.$font-size6-5;
+    }
+
+    padding: 0 4px;
+    border-radius: border-radius.$border-radius;
+
+    background-color: var($color);
+    color: var(--color1);
+}
+
+@mixin cat-contentRating($size: 'small') {
+    @include base-style(--color5, $size);
+}
+
+@mixin cat-demographic($size: 'small') {
+    @include base-style(--color3, $size);
+}
+
+@mixin cat-genre($size: 'small') {
+    @include base-style(--color2, $size);
+}
+
+@mixin cat-theme($size: 'small') {
+    @include base-style(--color2, $size);
+}

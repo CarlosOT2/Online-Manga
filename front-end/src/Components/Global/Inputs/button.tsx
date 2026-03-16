@@ -1,5 +1,5 @@
 //# Utils //
-import FilterClasses from '../../Shared/utils/FilterClasses';
+import FilterClasses from '../../../Shared/utils/FilterClasses';
 //# Classes //
 import './button.scss'
 

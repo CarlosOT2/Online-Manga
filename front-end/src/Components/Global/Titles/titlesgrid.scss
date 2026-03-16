@@ -1,27 +1,8 @@
 //# Use //
-@use '../../Shared/styles/mixins/no-select' as no-select;
-@use '../../Shared/styles/default/border-radius' as border-radius;
-@use '../../Shared/styles/default/layout' as layout;
-@use '../../Shared/styles/default/text' as text;
-
-@mixin box-style {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    height: 15px;
-    width: fit-content;
-    min-width: 55px;
-
-    padding: 0 4px;
-
-    border-radius: border-radius.$border-radius;
-    background-color: var(--color2);
-
-    color: var(--color1);
-    font-weight: bold;
-    font-size: text.$font-size7;
-}
+@use '../../../Shared/styles/mixins/no-select' as no-select;
+@use '../../../Shared/styles/default/border-radius' as border-radius;
+@use '../../../Shared/styles/default/text' as text;
+@use '../../../Shared/styles/default/title-categories' as title-categories;
 
 .titlegrid {
     display: grid;
@@ -62,7 +43,7 @@
             list-style: none;
             margin: 0;
             padding: 0;
-            
+
             display: flex;
             flex-wrap: wrap;
 
@@ -70,19 +51,19 @@
         }
 
         &-contentRating {
-            @include box-style;
-            background-color: var(--color5);
+            @include title-categories.cat-contentRating;
         }
 
         &-demographic {
-            @include box-style;
-            background-color: var(--color3);
+            @include title-categories.cat-demographic;
         }
 
-        &-genre,
+        &-genre {
+            @include title-categories.cat-genre;
+        }
+
         &-theme {
-            @include box-style;
-            background-color: var(--color2);
+            @include title-categories.cat-theme;
         }
     }
 }

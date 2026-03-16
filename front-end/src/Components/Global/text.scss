@@ -18,10 +18,17 @@
         border: 0;
     }
 
-    &-paragraph-div {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
+    &-paragraph {
+        &-div {
+            display: flex;
+            flex-direction: column;
+
+            gap: 20px;
+        }
+
+        &-element {
+            margin: 0;
+        }
     }
 
     &-title {

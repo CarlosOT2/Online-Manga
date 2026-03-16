@@ -1,5 +1,5 @@
 //# Use //
-@use '../../Shared/styles/default/button' as button;
+@use '../../../Shared/styles/default/button' as button;
 
 .button {
     @include button.button-style;

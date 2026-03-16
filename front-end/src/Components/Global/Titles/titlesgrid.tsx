@@ -1,20 +1,20 @@
 //# Components //
-import Text from '../Global/text'
-import Link from '../Global/link'
-import Img from '../Global/img'
+import Text from '../text'
+import Link from '../link'
+import Img from '../img'
 //# Utils //
-import chunkArray from '../../Shared/utils/chunkArray'
-import staticMapper from '../../Shared/utils/staticMapper'
+import chunkArray from '../../../Shared/utils/chunkArray'
+import staticMapper from '../../../Shared/utils/staticMapper'
 //# Types //
-import { title } from '../../Shared/types/Data/title'
+import { title } from '../../../Shared/types/Data/title'
 //# Config //
-import { grid } from '../../config/Components/title'
+import { grid } from '../../../config/Components/title'
 //# Classes //
 import './titlesgrid.scss'
 
 type TitlesGrid = {
     data: title[],
-    variant: 'card' | 'compact' | 'hero'
+    variant: 'card' | 'compact'
 }
 type TitleInfoConfig = {
     contentRating?: boolean,
@@ -23,6 +23,7 @@ type TitleInfoConfig = {
     themes?: boolean,
     synopsis?: boolean
 }
+
 export default function TitlesGrid({
     data,
     variant
@@ -34,10 +35,9 @@ export default function TitlesGrid({
     const { items, columns } = grid[variant]
     const OrganizedData = chunkArray<title>(data, items).slice(0, columns);
 
-    function TitleInfo({ title, config }: { title: title, config: TitleInfoConfig }) {
-        const { contentRating, demographic, synopsis, genres, themes } = config
-        console.log(title.genres)
-        console.log(title.themes)
+    function TitleInfo({ title, config }: { title: title, config?: TitleInfoConfig }) {
+        const { contentRating, demographic, synopsis, genres, themes } = config ?? {}
+
         return (
             <section className='titlegrid__item-info-container'>
                 <Text not_exceed_X={true} className={`titlegrid__item-name`} tag={'h3'}>
@@ -100,7 +100,7 @@ export default function TitlesGrid({
                             alt={`Cover of ${title.name}`}
                         />
                         {variant === 'compact' && (
-                            <TitleInfo title={title} config={{ contentRating: true, demographic: true }} />
+                            <TitleInfo title={title}/>
                         )}
                         {variant === 'card' && (
                             <TitleInfo title={title} config={{ contentRating: true, demographic: true, genres: true, themes: true, synopsis: true }} />
@@ -110,6 +110,7 @@ export default function TitlesGrid({
             </li>
         )
     }
+    
     return (
         <div
             className={`titlegrid titlegrid--${variant}`}

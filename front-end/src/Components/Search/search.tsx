@@ -1,11 +1,11 @@
 //# Components //
 import Text from '../Global/text'
 import Link from '../Global/link'
-import Input from '../Global/input'
-import Button from '../Global/button'
-import RadioInput from '../Global/radioinput'
-import CheckBoxInput from '../Global/checkboxinput'
-import TitleGrid from '../Global/titlesgrid'
+import Input from '../Global/Inputs/input'
+import Button from '../Global/Inputs/button'
+import RadioInput from '../Global/Inputs/radioinput'
+import CheckBoxInput from '../Global/Inputs/checkboxinput'
+import TitleGrid from '../Global/Titles/titlesgrid'
 //# Libs //
 import { useState, useEffect, useId, useRef } from 'react'
 //# Api //

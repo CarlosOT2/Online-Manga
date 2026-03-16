@@ -1,6 +1,6 @@
 //# Components //
 import Text from '../Global/text'
-import Button from '../Global/button'
+import Button from '../Global/Inputs/button'
 import Img from '../Global/img'
 //# Libs //
 import { useEffect, useState } from 'react'

@@ -1,9 +1,9 @@
 //# Utils //
-import FilterClasses from '../../Shared/utils/FilterClasses';
+import FilterClasses from '../../../Shared/utils/FilterClasses';
 //# Libs //
 import { useRef, useEffect } from 'react';
 //# Types //
-import type { InputsController } from '../../Shared/types/FormController'
+import type { InputsController } from '../../../Shared/types/FormController'
 import { IconType } from 'react-icons';
 //# Classes //
 import './input.scss'

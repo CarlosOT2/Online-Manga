@@ -45,7 +45,7 @@ function splitParagraph(tag: keyof React.JSX.IntrinsicElements, text: string, sp
     for (let i = 0; i < splitedText.length; i += 2) {
         const group = splitedText[i] + (splitedText[i + 1] ? '' + splitedText[i + 1] : '');
         paragraphs.push(
-            <TxtTag className={className} key={i}>
+            <TxtTag className={`text-paragraph-element ${className}`} key={i}>
                 {group}
             </TxtTag>
         )

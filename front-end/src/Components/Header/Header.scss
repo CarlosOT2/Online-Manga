@@ -95,7 +95,7 @@
         }
 
         &__login {
-            @include button.button-style;
+            @include button.button-style(var(--color3));
 
             text-decoration: none;
 

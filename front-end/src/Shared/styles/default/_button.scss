@@ -6,16 +6,16 @@
     border: 1px solid $color;
 }
 
-@mixin button-style {
-    @include button-border(var(--color3));
+@mixin button-style($color: var(--color3)) {
+    @include button-border($color);
 
-    background-color: var(--color3);
+    background-color: $color;
     border-radius: border-radius.$border-radius;
 
     transition: filter transition-time.$transition-time ease;
     
     &:hover {
         cursor: pointer;
-        filter: brightness(80%);
+        filter: brightness(90%);
     }
 }

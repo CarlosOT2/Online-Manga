@@ -1,6 +1,6 @@
 //# Components //
 import Text from '../Global/text'
-import TitleGrid from '../Global/titlesgrid'
+import TitleGrid from '../Global/Titles/titlesgrid'
 //# Libs //
 import { useState, useEffect } from 'react'
 //# Api //

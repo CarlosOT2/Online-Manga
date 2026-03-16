@@ -1,9 +1,9 @@
 //# Components //
-import Text from './text'
+import Text from '../text'
 //# Utils //
-import FilterClasses from '../../Shared/utils/FilterClasses';
+import FilterClasses from '../../../Shared/utils/FilterClasses';
 //# Types //
-import type { InputsController } from '../../Shared/types/FormController'
+import type { InputsController } from '../../../Shared/types/FormController'
 //# Classes //
 import './radioinput.scss'
 
