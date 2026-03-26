@@ -1,808 +1,1147 @@
-diff --git a/back-end/back-end/Controllers/Artists.cs b/back-end/back-end/Controllers/Artists.cs
-new file mode 100644
-index 0000000..42d9aa3
---- /dev/null
-+++ b/back-end/back-end/Controllers/Artists.cs
-@@ -0,0 +1,20 @@
-+﻿using back_end.Data;
-+using back_end.Database.DbAccess.Interfaces;
-+using Microsoft.AspNetCore.Mvc;
-+
-+namespace back_end.Controllers
-+{
-+    [Route("[controller]")]
-+    [ApiController]
-+
-+    public class ArtistsController : ControllerBase
-+    {
-+        private readonly IStatic _dbAccess;
-+
-+        public ArtistsController(AppDbContext context, IStatic dbAccess)
-+        {
-+            _dbAccess = dbAccess;
-+        }
-+
-+    }
-+}
-diff --git a/back-end/back-end/Controllers/Authors.cs b/back-end/back-end/Controllers/Authors.cs
-new file mode 100644
-index 0000000..98dfb0a
---- /dev/null
-+++ b/back-end/back-end/Controllers/Authors.cs
-@@ -0,0 +1,18 @@
-+﻿using back_end.Data;
-+using back_end.Database.DbAccess.Interfaces;
-+using Microsoft.AspNetCore.Mvc;
-+
-+namespace back_end.Controllers
-+{
-+    [Route("[controller]")]
-+    [ApiController]
-+    public class AuthorsController : ControllerBase
-+    {
-+        private readonly IStatic _dbAccess;
-+
-+        public AuthorsController(AppDbContext context, IStatic dbAccess)
-+        {
-+            _dbAccess = dbAccess;
-+        }
-+    }
-+}
-diff --git a/back-end/back-end/Database/DbAccess/Artist.cs b/back-end/back-end/Database/DbAccess/Artist.cs
-new file mode 100644
-index 0000000..29990bd
---- /dev/null
-+++ b/back-end/back-end/Database/DbAccess/Artist.cs
-@@ -0,0 +1,6 @@
-+﻿namespace back_end.Database.DbAccess
-+{
-+    public class Artist
-+    {
-+    }
-+}
-diff --git a/back-end/back-end/Database/DbAccess/Author.cs b/back-end/back-end/Database/DbAccess/Author.cs
-new file mode 100644
-index 0000000..46ce103
---- /dev/null
-+++ b/back-end/back-end/Database/DbAccess/Author.cs
-@@ -0,0 +1,6 @@
-+﻿namespace back_end.Database.DbAccess
-+{
-+    public class Author
-+    {
-+    }
-+}
-diff --git a/front-end/src/Components/Global/button.scss b/front-end/src/Components/Global/Inputs/button.scss
-similarity index 50%
-rename from front-end/src/Components/Global/button.scss
-rename to front-end/src/Components/Global/Inputs/button.scss
-index e1c6fc9..81a860a 100644
---- a/front-end/src/Components/Global/button.scss
-+++ b/front-end/src/Components/Global/Inputs/button.scss
-@@ -1,5 +1,5 @@
- //# Use //
--@use '../../Shared/styles/default/button' as button;
-+@use '../../../Shared/styles/default/button' as button;
- 
- .button {
-     @include button.button-style;
-diff --git a/front-end/src/Components/Global/button.tsx b/front-end/src/Components/Global/Inputs/button.tsx
-similarity index 94%
-rename from front-end/src/Components/Global/button.tsx
-rename to front-end/src/Components/Global/Inputs/button.tsx
-index fd1ccc7..af6d33e 100644
---- a/front-end/src/Components/Global/button.tsx
-+++ b/front-end/src/Components/Global/Inputs/button.tsx
-@@ -1,5 +1,5 @@
- //# Utils //
--import FilterClasses from '../../Shared/utils/FilterClasses';
-+import FilterClasses from '../../../Shared/utils/FilterClasses';
- //# Classes //
- import './button.scss'
- 
-diff --git a/front-end/src/Components/Global/checkboxinput.scss b/front-end/src/Components/Global/Inputs/checkboxinput.scss
-similarity index 90%
-rename from front-end/src/Components/Global/checkboxinput.scss
-rename to front-end/src/Components/Global/Inputs/checkboxinput.scss
-index 874872c..b01741d 100644
---- a/front-end/src/Components/Global/checkboxinput.scss
-+++ b/front-end/src/Components/Global/Inputs/checkboxinput.scss
-@@ -1,5 +1,5 @@
- //# Uses //
--@use '../../Shared/styles/default/border-radius' as border-radius;
-+@use '../../../Shared/styles/default/border-radius' as border-radius;
- 
- .checkboxinput {
-     &-label {
-diff --git a/front-end/src/Components/Global/checkboxinput.tsx b/front-end/src/Components/Global/Inputs/checkboxinput.tsx
-similarity index 93%
-rename from front-end/src/Components/Global/checkboxinput.tsx
-rename to front-end/src/Components/Global/Inputs/checkboxinput.tsx
-index 643cf28..239d914 100644
---- a/front-end/src/Components/Global/checkboxinput.tsx
-+++ b/front-end/src/Components/Global/Inputs/checkboxinput.tsx
-@@ -1,9 +1,9 @@
- //# Components //
--import Text from './text';
-+import Text from '../text';
- //# Utils //
--import FilterClasses from '../../Shared/utils/FilterClasses';
-+import FilterClasses from '../../../Shared/utils/FilterClasses';
- //# Types //
--import type { InputsController } from '../../Shared/types/FormController'
-+import type { InputsController } from '../../../Shared/types/FormController'
- //# Classes //
- import './checkboxinput.scss'
- 
-diff --git a/front-end/src/Components/Global/input.scss b/front-end/src/Components/Global/Inputs/input.scss
-similarity index 85%
-rename from front-end/src/Components/Global/input.scss
-rename to front-end/src/Components/Global/Inputs/input.scss
-index 88bc0d4..c31c09d 100644
---- a/front-end/src/Components/Global/input.scss
-+++ b/front-end/src/Components/Global/Inputs/input.scss
-@@ -1,6 +1,6 @@
- //# Uses //
--@use '../../Shared/styles/default/input' as input;
--@use '../../Shared/styles/utils' as utils;
-+@use '../../../Shared/styles/default/input' as input;
-+@use '../../../Shared/styles/utils' as utils;
- 
- 
- .input {
-diff --git a/front-end/src/Components/Global/input.tsx b/front-end/src/Components/Global/Inputs/input.tsx
-similarity index 92%
-rename from front-end/src/Components/Global/input.tsx
-rename to front-end/src/Components/Global/Inputs/input.tsx
-index 2fb1e6e..7f909bb 100644
---- a/front-end/src/Components/Global/input.tsx
-+++ b/front-end/src/Components/Global/Inputs/input.tsx
-@@ -1,9 +1,9 @@
- //# Utils //
--import FilterClasses from '../../Shared/utils/FilterClasses';
-+import FilterClasses from '../../../Shared/utils/FilterClasses';
- //# Libs //
- import { useRef, useEffect } from 'react';
- //# Types //
--import type { InputsController } from '../../Shared/types/FormController'
-+import type { InputsController } from '../../../Shared/types/FormController'
- import { IconType } from 'react-icons';
- //# Classes //
- import './input.scss'
-diff --git a/front-end/src/Components/Global/radioinput.scss b/front-end/src/Components/Global/Inputs/radioinput.scss
-similarity index 88%
-rename from front-end/src/Components/Global/radioinput.scss
-rename to front-end/src/Components/Global/Inputs/radioinput.scss
-index d4d55f9..ec9ad2d 100644
---- a/front-end/src/Components/Global/radioinput.scss
-+++ b/front-end/src/Components/Global/Inputs/radioinput.scss
-@@ -1,5 +1,5 @@
- //# Uses //
--@use '../../Shared/styles/default/border-radius' as border-radius;
-+@use '../../../Shared/styles/default/border-radius' as border-radius;
- 
- .radioinput {
- 
-diff --git a/front-end/src/Components/Global/radioinput.tsx b/front-end/src/Components/Global/Inputs/radioinput.tsx
-similarity index 93%
-rename from front-end/src/Components/Global/radioinput.tsx
-rename to front-end/src/Components/Global/Inputs/radioinput.tsx
-index f00ca40..ee1894c 100644
---- a/front-end/src/Components/Global/radioinput.tsx
-+++ b/front-end/src/Components/Global/Inputs/radioinput.tsx
-@@ -1,9 +1,9 @@
- //# Components //
--import Text from './text'
-+import Text from '../text'
- //# Utils //
--import FilterClasses from '../../Shared/utils/FilterClasses';
-+import FilterClasses from '../../../Shared/utils/FilterClasses';
- //# Types //
--import type { InputsController } from '../../Shared/types/FormController'
-+import type { InputsController } from '../../../Shared/types/FormController'
- //# Classes //
- import './radioinput.scss'
- 
+diff --git a/diff.txt b/diff.txt
+index b08dba6..e69de29 100644
+--- a/diff.txt
++++ b/diff.txt
+@@ -1,808 +0,0 @@
+-diff --git a/back-end/back-end/Controllers/Artists.cs b/back-end/back-end/Controllers/Artists.cs
+-new file mode 100644
+-index 0000000..42d9aa3
+---- /dev/null
+-+++ b/back-end/back-end/Controllers/Artists.cs
+-@@ -0,0 +1,20 @@
+-+﻿using back_end.Data;
+-+using back_end.Database.DbAccess.Interfaces;
+-+using Microsoft.AspNetCore.Mvc;
+-+
+-+namespace back_end.Controllers
+-+{
+-+    [Route("[controller]")]
+-+    [ApiController]
+-+
+-+    public class ArtistsController : ControllerBase
+-+    {
+-+        private readonly IStatic _dbAccess;
+-+
+-+        public ArtistsController(AppDbContext context, IStatic dbAccess)
+-+        {
+-+            _dbAccess = dbAccess;
+-+        }
+-+
+-+    }
+-+}
+-diff --git a/back-end/back-end/Controllers/Authors.cs b/back-end/back-end/Controllers/Authors.cs
+-new file mode 100644
+-index 0000000..98dfb0a
+---- /dev/null
+-+++ b/back-end/back-end/Controllers/Authors.cs
+-@@ -0,0 +1,18 @@
+-+﻿using back_end.Data;
+-+using back_end.Database.DbAccess.Interfaces;
+-+using Microsoft.AspNetCore.Mvc;
+-+
+-+namespace back_end.Controllers
+-+{
+-+    [Route("[controller]")]
+-+    [ApiController]
+-+    public class AuthorsController : ControllerBase
+-+    {
+-+        private readonly IStatic _dbAccess;
+-+
+-+        public AuthorsController(AppDbContext context, IStatic dbAccess)
+-+        {
+-+            _dbAccess = dbAccess;
+-+        }
+-+    }
+-+}
+-diff --git a/back-end/back-end/Database/DbAccess/Artist.cs b/back-end/back-end/Database/DbAccess/Artist.cs
+-new file mode 100644
+-index 0000000..29990bd
+---- /dev/null
+-+++ b/back-end/back-end/Database/DbAccess/Artist.cs
+-@@ -0,0 +1,6 @@
+-+﻿namespace back_end.Database.DbAccess
+-+{
+-+    public class Artist
+-+    {
+-+    }
+-+}
+-diff --git a/back-end/back-end/Database/DbAccess/Author.cs b/back-end/back-end/Database/DbAccess/Author.cs
+-new file mode 100644
+-index 0000000..46ce103
+---- /dev/null
+-+++ b/back-end/back-end/Database/DbAccess/Author.cs
+-@@ -0,0 +1,6 @@
+-+﻿namespace back_end.Database.DbAccess
+-+{
+-+    public class Author
+-+    {
+-+    }
+-+}
+-diff --git a/front-end/src/Components/Global/button.scss b/front-end/src/Components/Global/Inputs/button.scss
+-similarity index 50%
+-rename from front-end/src/Components/Global/button.scss
+-rename to front-end/src/Components/Global/Inputs/button.scss
+-index e1c6fc9..81a860a 100644
+---- a/front-end/src/Components/Global/button.scss
+-+++ b/front-end/src/Components/Global/Inputs/button.scss
+-@@ -1,5 +1,5 @@
+- //# Use //
+--@use '../../Shared/styles/default/button' as button;
+-+@use '../../../Shared/styles/default/button' as button;
+- 
+- .button {
+-     @include button.button-style;
+-diff --git a/front-end/src/Components/Global/button.tsx b/front-end/src/Components/Global/Inputs/button.tsx
+-similarity index 94%
+-rename from front-end/src/Components/Global/button.tsx
+-rename to front-end/src/Components/Global/Inputs/button.tsx
+-index fd1ccc7..af6d33e 100644
+---- a/front-end/src/Components/Global/button.tsx
+-+++ b/front-end/src/Components/Global/Inputs/button.tsx
+-@@ -1,5 +1,5 @@
+- //# Utils //
+--import FilterClasses from '../../Shared/utils/FilterClasses';
+-+import FilterClasses from '../../../Shared/utils/FilterClasses';
+- //# Classes //
+- import './button.scss'
+- 
+-diff --git a/front-end/src/Components/Global/checkboxinput.scss b/front-end/src/Components/Global/Inputs/checkboxinput.scss
+-similarity index 90%
+-rename from front-end/src/Components/Global/checkboxinput.scss
+-rename to front-end/src/Components/Global/Inputs/checkboxinput.scss
+-index 874872c..b01741d 100644
+---- a/front-end/src/Components/Global/checkboxinput.scss
+-+++ b/front-end/src/Components/Global/Inputs/checkboxinput.scss
+-@@ -1,5 +1,5 @@
+- //# Uses //
+--@use '../../Shared/styles/default/border-radius' as border-radius;
+-+@use '../../../Shared/styles/default/border-radius' as border-radius;
+- 
+- .checkboxinput {
+-     &-label {
+-diff --git a/front-end/src/Components/Global/checkboxinput.tsx b/front-end/src/Components/Global/Inputs/checkboxinput.tsx
+-similarity index 93%
+-rename from front-end/src/Components/Global/checkboxinput.tsx
+-rename to front-end/src/Components/Global/Inputs/checkboxinput.tsx
+-index 643cf28..239d914 100644
+---- a/front-end/src/Components/Global/checkboxinput.tsx
+-+++ b/front-end/src/Components/Global/Inputs/checkboxinput.tsx
+-@@ -1,9 +1,9 @@
+- //# Components //
+--import Text from './text';
+-+import Text from '../text';
+- //# Utils //
+--import FilterClasses from '../../Shared/utils/FilterClasses';
+-+import FilterClasses from '../../../Shared/utils/FilterClasses';
+- //# Types //
+--import type { InputsController } from '../../Shared/types/FormController'
+-+import type { InputsController } from '../../../Shared/types/FormController'
+- //# Classes //
+- import './checkboxinput.scss'
+- 
+-diff --git a/front-end/src/Components/Global/input.scss b/front-end/src/Components/Global/Inputs/input.scss
+-similarity index 85%
+-rename from front-end/src/Components/Global/input.scss
+-rename to front-end/src/Components/Global/Inputs/input.scss
+-index 88bc0d4..c31c09d 100644
+---- a/front-end/src/Components/Global/input.scss
+-+++ b/front-end/src/Components/Global/Inputs/input.scss
+-@@ -1,6 +1,6 @@
+- //# Uses //
+--@use '../../Shared/styles/default/input' as input;
+--@use '../../Shared/styles/utils' as utils;
+-+@use '../../../Shared/styles/default/input' as input;
+-+@use '../../../Shared/styles/utils' as utils;
+- 
+- 
+- .input {
+-diff --git a/front-end/src/Components/Global/input.tsx b/front-end/src/Components/Global/Inputs/input.tsx
+-similarity index 92%
+-rename from front-end/src/Components/Global/input.tsx
+-rename to front-end/src/Components/Global/Inputs/input.tsx
+-index 2fb1e6e..7f909bb 100644
+---- a/front-end/src/Components/Global/input.tsx
+-+++ b/front-end/src/Components/Global/Inputs/input.tsx
+-@@ -1,9 +1,9 @@
+- //# Utils //
+--import FilterClasses from '../../Shared/utils/FilterClasses';
+-+import FilterClasses from '../../../Shared/utils/FilterClasses';
+- //# Libs //
+- import { useRef, useEffect } from 'react';
+- //# Types //
+--import type { InputsController } from '../../Shared/types/FormController'
+-+import type { InputsController } from '../../../Shared/types/FormController'
+- import { IconType } from 'react-icons';
+- //# Classes //
+- import './input.scss'
+-diff --git a/front-end/src/Components/Global/radioinput.scss b/front-end/src/Components/Global/Inputs/radioinput.scss
+-similarity index 88%
+-rename from front-end/src/Components/Global/radioinput.scss
+-rename to front-end/src/Components/Global/Inputs/radioinput.scss
+-index d4d55f9..ec9ad2d 100644
+---- a/front-end/src/Components/Global/radioinput.scss
+-+++ b/front-end/src/Components/Global/Inputs/radioinput.scss
+-@@ -1,5 +1,5 @@
+- //# Uses //
+--@use '../../Shared/styles/default/border-radius' as border-radius;
+-+@use '../../../Shared/styles/default/border-radius' as border-radius;
+- 
+- .radioinput {
+- 
+-diff --git a/front-end/src/Components/Global/radioinput.tsx b/front-end/src/Components/Global/Inputs/radioinput.tsx
+-similarity index 93%
+-rename from front-end/src/Components/Global/radioinput.tsx
+-rename to front-end/src/Components/Global/Inputs/radioinput.tsx
+-index f00ca40..ee1894c 100644
+---- a/front-end/src/Components/Global/radioinput.tsx
+-+++ b/front-end/src/Components/Global/Inputs/radioinput.tsx
+-@@ -1,9 +1,9 @@
+- //# Components //
+--import Text from './text'
+-+import Text from '../text'
+- //# Utils //
+--import FilterClasses from '../../Shared/utils/FilterClasses';
+-+import FilterClasses from '../../../Shared/utils/FilterClasses';
+- //# Types //
+--import type { InputsController } from '../../Shared/types/FormController'
+-+import type { InputsController } from '../../../Shared/types/FormController'
+- //# Classes //
+- import './radioinput.scss'
+- 
+-diff --git a/front-end/src/Components/Global/Titles/featuredtitles.scss b/front-end/src/Components/Global/Titles/featuredtitles.scss
+-new file mode 100644
+-index 0000000..4dca942
+---- /dev/null
+-+++ b/front-end/src/Components/Global/Titles/featuredtitles.scss
+-@@ -0,0 +1,79 @@
+-+//# Use //
+-+@use '../../../Shared/styles/mixins/no-select' as no-select;
+-+@use '../../../Shared/styles/default/layout' as layout;
+-+@use '../../../Shared/styles/default/text' as text;
+-+@use '../../../Shared/styles/default/border-radius' as border-radius;
+-+@use '../../../Shared/styles/default/title-categories' as title-categories;
+-+
+-+.featuredtitles {
+-+    width: layout.$layout-default-width;
+-+
+-+    &__link {}
+-+
+-+    &__item {
+-+        display: flex;
+-+        gap: 20px;
+-+
+-+        &-img {
+-+            height: 100%;
+-+            width: 20%;
+-+            border-radius: border-radius.$border-radius;
+-+            @include no-select.no-select;
+-+        }
+-+
+-+        &-name {
+-+            margin: 0;
+-+            font-size: text.$font-size2;
+-+        }
+-+
+-+        &-section {
+-+            display: flex;
+-+            flex-direction: column;
+-+
+-+            width: 70%;
+-+
+-+            gap: 10px;
+-+        }
+-+
+-+        &-list {
+-+            list-style: none;
+-+            margin: 0;
+-+            padding: 0;
+-+
+-+            display: flex;
+-+            flex-wrap: wrap;
+-+
+-+            gap: 5px;
+-+        }
+-+
+-+        &-synopsis {
+-+            font-size: text.$font-size5-5;
+-+        }
+-+
+-+        &-authors {
+-+            margin: 0;
+-+            margin-top: auto;
+-+
+-+            font-weight: bold;
+-+            font-size: text.$font-size5;
+-+            color: var(--color1)
+-+        }
+-+
+-+        &-contentRating {
+-+            @include title-categories.cat-contentRating('medium');
+-+        }
+-+
+-+        &-demographic {
+-+            @include title-categories.cat-demographic('medium');
+-+        }
+-+
+-+        &-genre {
+-+            @include title-categories.cat-genre('medium');
+-+        }
+-+
+-+        &-theme {
+-+            @include title-categories.cat-theme('medium');
+-+        }
+-+    }
+-+
+-+}
+-\ No newline at end of file
+-diff --git a/front-end/src/Components/Global/Titles/featuredtitles.tsx b/front-end/src/Components/Global/Titles/featuredtitles.tsx
+-new file mode 100644
+-index 0000000..0010e7c
+---- /dev/null
+-+++ b/front-end/src/Components/Global/Titles/featuredtitles.tsx
+-@@ -0,0 +1,61 @@
+-+//# Components //
+-+import Text from '../text'
+-+import Link from '../link'
+-+import Img from '../img'
+-+//# Utils //
+-+import staticMapper from '../../../Shared/utils/staticMapper'
+-+//# Types //
+-+import { title } from '../../../Shared/types/Data/title'
+-+//# Classes //
+-+import './featuredtitles.scss'
+-+
+-+export default function FeaturedTitles({ data }: { data: title[] }) {
+-+    return (
+-+        <section className='featuredtitles'>
+-+            {
+-+                data.map((title) => (
+-+                    <Link
+-+                        to={`/title/${title.id}/${title.name}`}
+-+                        className='featuredtitles__link'
+-+                    >
+-+                        <article className='featuredtitles__item'>
+-+                            <Img className={'featuredtitles__item-img'} src={`public/manga-teste.jpg`} />
+-+                            <section className='featuredtitles__item-section'>
+-+                                <Text not_exceed_X={true} className={`featuredtitles__item-name`} tag={'h3'}>
+-+                                    {title.name}
+-+                                </Text>
+-+                                <ul className='featuredtitles__item-list'>
+-+                                    <li>
+-+                                        <Text no_select={true} not_exceed_X={true} className={`featuredtitles__item-contentRating`} tag={'span'}>
+-+                                            {staticMapper("contentRatings", Number(title.contentRating))}
+-+                                        </Text>
+-+                                    </li>
+-+                                    <li>
+-+                                        <Text no_select={true} not_exceed_X={true} className={`featuredtitles__item-demographic`} tag={'span'}>
+-+                                            {staticMapper("demographics", Number(title.demographic))}
+-+                                        </Text>
+-+                                    </li>
+-+                                    {
+-+                                        title.genres.slice(0, 3).map((g, i) =>
+-+                                            <li key={`genre-${i}`}>
+-+                                                <Text no_select={true} not_exceed_X={true} className={`featuredtitles__item-genre`} tag={'span'}>
+-+                                                    {staticMapper("genres", Number(g))}
+-+                                                </Text>
+-+                                            </li>
+-+                                        )
+-+                                    }
+-+                                </ul>
+-+                                <Text className={'featuredtitles__item-synopsis'} tag={'span'} not_exceed_Y={true}>
+-+                                    {title.synopsis}
+-+                                </Text>
+-+                                <Text className={'featuredtitles__item-authors'} not_exceed_X={true} tag={'p'}>
+-+                                    {title?.authors.join(", ")}
+-+                                </Text>
+-+                            </section>
+-+                        </article>
+-+                    </Link>
+-+                ))
+-+            }
+-+        </section >
+-+    )
+-+}
+-\ No newline at end of file
+-diff --git a/front-end/src/Components/Global/titlesgrid.scss b/front-end/src/Components/Global/Titles/titlesgrid.scss
+-similarity index 69%
+-rename from front-end/src/Components/Global/titlesgrid.scss
+-rename to front-end/src/Components/Global/Titles/titlesgrid.scss
+-index aa1522d..4a59080 100644
+---- a/front-end/src/Components/Global/titlesgrid.scss
+-+++ b/front-end/src/Components/Global/Titles/titlesgrid.scss
+-@@ -1,27 +1,8 @@
+- //# Use //
+--@use '../../Shared/styles/mixins/no-select' as no-select;
+--@use '../../Shared/styles/default/border-radius' as border-radius;
+--@use '../../Shared/styles/default/layout' as layout;
+--@use '../../Shared/styles/default/text' as text;
+--
+--@mixin box-style {
+--    display: flex;
+--    justify-content: center;
+--    align-items: center;
+--
+--    height: 15px;
+--    width: fit-content;
+--    min-width: 55px;
+--
+--    padding: 0 4px;
+--
+--    border-radius: border-radius.$border-radius;
+--    background-color: var(--color2);
+--
+--    color: var(--color1);
+--    font-weight: bold;
+--    font-size: text.$font-size7;
+--}
+-+@use '../../../Shared/styles/mixins/no-select' as no-select;
+-+@use '../../../Shared/styles/default/border-radius' as border-radius;
+-+@use '../../../Shared/styles/default/text' as text;
+-+@use '../../../Shared/styles/default/title-categories' as title-categories;
+- 
+- .titlegrid {
+-     display: grid;
+-@@ -62,7 +43,7 @@
+-             list-style: none;
+-             margin: 0;
+-             padding: 0;
+--            
+-+
+-             display: flex;
+-             flex-wrap: wrap;
+- 
+-@@ -70,19 +51,19 @@
+-         }
+- 
+-         &-contentRating {
+--            @include box-style;
+--            background-color: var(--color5);
+-+            @include title-categories.cat-contentRating;
+-         }
+- 
+-         &-demographic {
+--            @include box-style;
+--            background-color: var(--color3);
+-+            @include title-categories.cat-demographic;
+-+        }
+-+
+-+        &-genre {
+-+            @include title-categories.cat-genre;
+-         }
+- 
+--        &-genre,
+-         &-theme {
+--            @include box-style;
+--            background-color: var(--color2);
+-+            @include title-categories.cat-theme;
+-         }
+-     }
+- }
+-diff --git a/front-end/src/Components/Global/titlesgrid.tsx b/front-end/src/Components/Global/Titles/titlesgrid.tsx
+-similarity index 88%
+-rename from front-end/src/Components/Global/titlesgrid.tsx
+-rename to front-end/src/Components/Global/Titles/titlesgrid.tsx
+-index 58b3dc5..bcb2422 100644
+---- a/front-end/src/Components/Global/titlesgrid.tsx
+-+++ b/front-end/src/Components/Global/Titles/titlesgrid.tsx
+-@@ -1,20 +1,20 @@
+- //# Components //
+--import Text from '../Global/text'
+--import Link from '../Global/link'
+--import Img from '../Global/img'
+-+import Text from '../text'
+-+import Link from '../link'
+-+import Img from '../img'
+- //# Utils //
+--import chunkArray from '../../Shared/utils/chunkArray'
+--import staticMapper from '../../Shared/utils/staticMapper'
+-+import chunkArray from '../../../Shared/utils/chunkArray'
+-+import staticMapper from '../../../Shared/utils/staticMapper'
+- //# Types //
+--import { title } from '../../Shared/types/Data/title'
+-+import { title } from '../../../Shared/types/Data/title'
+- //# Config //
+--import { grid } from '../../config/Components/title'
+-+import { grid } from '../../../config/Components/title'
+- //# Classes //
+- import './titlesgrid.scss'
+- 
+- type TitlesGrid = {
+-     data: title[],
+--    variant: 'card' | 'compact' | 'hero'
+-+    variant: 'card' | 'compact'
+- }
+- type TitleInfoConfig = {
+-     contentRating?: boolean,
+-@@ -23,6 +23,7 @@ type TitleInfoConfig = {
+-     themes?: boolean,
+-     synopsis?: boolean
+- }
+-+
+- export default function TitlesGrid({
+-     data,
+-     variant
+-@@ -34,10 +35,9 @@ export default function TitlesGrid({
+-     const { items, columns } = grid[variant]
+-     const OrganizedData = chunkArray<title>(data, items).slice(0, columns);
+- 
+--    function TitleInfo({ title, config }: { title: title, config: TitleInfoConfig }) {
+--        const { contentRating, demographic, synopsis, genres, themes } = config
+--        console.log(title.genres)
+--        console.log(title.themes)
+-+    function TitleInfo({ title, config }: { title: title, config?: TitleInfoConfig }) {
+-+        const { contentRating, demographic, synopsis, genres, themes } = config ?? {}
+-+
+-         return (
+-             <section className='titlegrid__item-info-container'>
+-                 <Text not_exceed_X={true} className={`titlegrid__item-name`} tag={'h3'}>
+-@@ -100,7 +100,7 @@ export default function TitlesGrid({
+-                             alt={`Cover of ${title.name}`}
+-                         />
+-                         {variant === 'compact' && (
+--                            <TitleInfo title={title} config={{ contentRating: true, demographic: true }} />
+-+                            <TitleInfo title={title}/>
+-                         )}
+-                         {variant === 'card' && (
+-                             <TitleInfo title={title} config={{ contentRating: true, demographic: true, genres: true, themes: true, synopsis: true }} />
+-@@ -110,6 +110,7 @@ export default function TitlesGrid({
+-             </li>
+-         )
+-     }
+-+    
+-     return (
+-         <div
+-             className={`titlegrid titlegrid--${variant}`}
+-diff --git a/front-end/src/Components/Global/text.scss b/front-end/src/Components/Global/text.scss
+-index e762ae2..54cbb48 100644
+---- a/front-end/src/Components/Global/text.scss
+-+++ b/front-end/src/Components/Global/text.scss
+-@@ -18,10 +18,17 @@
+-         border: 0;
+-     }
+- 
+--    &-paragraph-div {
+--        display: flex;
+--        flex-direction: column;
+--        gap: 15px;
+-+    &-paragraph {
+-+        &-div {
+-+            display: flex;
+-+            flex-direction: column;
+-+
+-+            gap: 20px;
+-+        }
+-+
+-+        &-element {
+-+            margin: 0;
+-+        }
+-     }
+- 
+-     &-title {
+-diff --git a/front-end/src/Components/Global/text.tsx b/front-end/src/Components/Global/text.tsx
+-index 7e5d288..ee57fad 100644
+---- a/front-end/src/Components/Global/text.tsx
+-+++ b/front-end/src/Components/Global/text.tsx
+-@@ -45,7 +45,7 @@ function splitParagraph(tag: keyof React.JSX.IntrinsicElements, text: string, sp
+-     for (let i = 0; i < splitedText.length; i += 2) {
+-         const group = splitedText[i] + (splitedText[i + 1] ? '' + splitedText[i + 1] : '');
+-         paragraphs.push(
+--            <TxtTag className={className} key={i}>
+-+            <TxtTag className={`text-paragraph-element ${className}`} key={i}>
+-                 {group}
+-             </TxtTag>
+-         )
+-diff --git a/front-end/src/Components/Header/Header.scss b/front-end/src/Components/Header/Header.scss
+-index 8a13dda..d2648ef 100644
+---- a/front-end/src/Components/Header/Header.scss
+-+++ b/front-end/src/Components/Header/Header.scss
+-@@ -95,7 +95,7 @@
+-         }
+- 
+-         &__login {
+--            @include button.button-style;
+-+            @include button.button-style(var(--color3));
+- 
+-             text-decoration: none;
+- 
+-diff --git a/front-end/src/Components/Header/Header.tsx b/front-end/src/Components/Header/Header.tsx
+-index f1ae68a..a2d5a45 100644
+---- a/front-end/src/Components/Header/Header.tsx
+-+++ b/front-end/src/Components/Header/Header.tsx
+-@@ -1,7 +1,7 @@
+- //# Components //
+- import Link from '../Global/link'
+- import Text from '../Global/text'
+--import Button from '../Global/button'
+-+import Button from '../Global/Inputs/button'
+- import Img from '../Global/img'
+- //# Libs //
+- import { useWindowScroll } from 'react-use'
+-diff --git a/front-end/src/Components/Home/Popular.scss b/front-end/src/Components/Home/Popular.scss
+-index 21e3910..28adbd0 100644
+---- a/front-end/src/Components/Home/Popular.scss
+-+++ b/front-end/src/Components/Home/Popular.scss
+-@@ -1,6 +1,7 @@
+- //# Use
+- @use '../../Shared/styles/default/layout' as layout;
+- @use '../../Shared/styles/default/border-radius' as border-radius;
+-+@use '../../Shared/styles/default/header' as header;
+- 
+- .home-popular {
+-     display: flex;
+-@@ -8,28 +9,7 @@
+-     justify-content: center;
+- 
+-     width: 100%;
+--    height: fit-content;
+-+    height: layout.$layout-max-height / 3.5;
+- 
+--    background: linear-gradient(to bottom, var(--color1), var(--color4));
+--
+--    &__container {
+--        display: flex;
+--        align-items: center;
+--        justify-content: center;
+--
+--        width: 100%;
+--        height: fit-content;
+--
+--        max-width: layout.$layout-max-width / 1.25;
+--        max-height: layout.$layout-max-height;
+--
+--        padding-top: 150px;
+--        padding-bottom: 150px;
+--
+--        &__template-img {
+--            height: 100%;
+--            width: 11%;
+--            border-radius: border-radius.$border-radius;
+--        }
+--    }
+-+    background: linear-gradient(to bottom, var(--color1), var(--color3));
+- }
+-\ No newline at end of file
+-diff --git a/front-end/src/Components/Home/Popular.tsx b/front-end/src/Components/Home/Popular.tsx
+-index 46bfdfe..3ead868 100644
+---- a/front-end/src/Components/Home/Popular.tsx
+-+++ b/front-end/src/Components/Home/Popular.tsx
+-@@ -1,16 +1,31 @@
+- //# Components //
+--import Img from '../Global/img'
+-+import FeaturedTitles from '../Global/Titles/featuredtitles'
+-+import Text from '../Global/text'
+-+//# Libs //
+-+import { useState, useEffect } from 'react'
+-+//# Api //
+-+import { GetAllTitles } from '../../Shared/api/FetchTitle'
+-+//# Types //
+-+import { title } from '../../Shared/types/Data/title'
+- //# Classes //
+- import './popular.scss'
+- 
+- export default function Popular() {
+-+    const [data, setData] = useState<title[]>([])
+-+
+-+    // essa data aqui é temporaria, ela vai ser utilizada para testar o popular/featuredtitles
+-+    async function req() {
+-+        setData(await GetAllTitles(1))
+-+    }
+-+
+-+    useEffect(() => {
+-+        req()
+-+    }, [])
+-+
+-     return (
+-         <>
+-             <div className='home-popular'>
+--                <div className='home-popular__container'>
+--                    <Img className={'home-popular__container__template-img'} src={`public/manga-teste.jpg`} />
+--                </div>
+--                
+-+                <FeaturedTitles data={data}/>
+-             </div>
+-         </>
+-     )
+-diff --git a/front-end/src/Components/Home/Updates.tsx b/front-end/src/Components/Home/Updates.tsx
+-index fdd3fea..991f367 100644
+---- a/front-end/src/Components/Home/Updates.tsx
+-+++ b/front-end/src/Components/Home/Updates.tsx
+-@@ -1,6 +1,6 @@
+- //# Components //
+- import Text from '../Global/text'
+--import TitleGrid from '../Global/titlesgrid'
+-+import TitleGrid from '../Global/Titles/titlesgrid'
+- //# Libs //
+- import { useState, useEffect } from 'react'
+- //# Api //
+-diff --git a/front-end/src/Components/Search/search.tsx b/front-end/src/Components/Search/search.tsx
+-index c8d09ab..7e5bdf5 100644
+---- a/front-end/src/Components/Search/search.tsx
+-+++ b/front-end/src/Components/Search/search.tsx
+-@@ -1,11 +1,11 @@
+- //# Components //
+- import Text from '../Global/text'
+- import Link from '../Global/link'
+--import Input from '../Global/input'
+--import Button from '../Global/button'
+--import RadioInput from '../Global/radioinput'
+--import CheckBoxInput from '../Global/checkboxinput'
+--import TitleGrid from '../Global/titlesgrid'
+-+import Input from '../Global/Inputs/input'
+-+import Button from '../Global/Inputs/button'
+-+import RadioInput from '../Global/Inputs/radioinput'
+-+import CheckBoxInput from '../Global/Inputs/checkboxinput'
+-+import TitleGrid from '../Global/Titles/titlesgrid'
+- //# Libs //
+- import { useState, useEffect, useId, useRef } from 'react'
+- //# Api //
+-diff --git a/front-end/src/Components/Title/title.scss b/front-end/src/Components/Title/title.scss
+-index ea38370..31e7f3a 100644
+---- a/front-end/src/Components/Title/title.scss
+-+++ b/front-end/src/Components/Title/title.scss
+-@@ -181,7 +181,7 @@ $text-shadow: 0px 0px 15px var(--text-color);
+-                 justify-content: center;
+-                 align-items: center;
+- 
+--                height: 20px;
+-+                height: 15px;
+- 
+-                 width: fit-content;
+-                 min-width: 60px;
+-diff --git a/front-end/src/Components/Title/title.tsx b/front-end/src/Components/Title/title.tsx
+-index 6579c3c..d9ccead 100644
+---- a/front-end/src/Components/Title/title.tsx
+-+++ b/front-end/src/Components/Title/title.tsx
+-@@ -1,6 +1,6 @@
+- //# Components //
+- import Text from '../Global/text'
+--import Button from '../Global/button'
+-+import Button from '../Global/Inputs/button'
+- import Img from '../Global/img'
+- //# Libs //
+- import { useEffect, useState } from 'react'
+-diff --git a/front-end/src/Shared/styles/default/_button.scss b/front-end/src/Shared/styles/default/_button.scss
+-index d92b0b0..fc195f5 100644
+---- a/front-end/src/Shared/styles/default/_button.scss
+-+++ b/front-end/src/Shared/styles/default/_button.scss
+-@@ -6,16 +6,16 @@
+-     border: 1px solid $color;
+- }
+- 
+--@mixin button-style {
+--    @include button-border(var(--color3));
+-+@mixin button-style($color: var(--color3)) {
+-+    @include button-border($color);
+- 
+--    background-color: var(--color3);
+-+    background-color: $color;
+-     border-radius: border-radius.$border-radius;
+- 
+-     transition: filter transition-time.$transition-time ease;
+-     
+-     &:hover {
+-         cursor: pointer;
+--        filter: brightness(80%);
+-+        filter: brightness(90%);
+-     }
+- }
+-\ No newline at end of file
+-diff --git a/front-end/src/Shared/styles/default/_text.scss b/front-end/src/Shared/styles/default/_text.scss
+-index fd3529a..c0eb9fe 100644
+---- a/front-end/src/Shared/styles/default/_text.scss
+-+++ b/front-end/src/Shared/styles/default/_text.scss
+-@@ -6,7 +6,9 @@ $font-size2: 1.75rem;
+- $font-size3: 1.5rem;
+- $font-size4: 1.25rem;
+- $font-size5: 1rem;
+-+$font-size5-5: 0.875rem;
+- $font-size6: 0.75rem;
+-+$font-size6-5: 0.625rem;
+- $font-size7: 0.5rem;
+- 
+- $font-family: hind, simhei, verdana, Helvetica, sans-serif;
+-diff --git a/front-end/src/Shared/styles/default/_title-categories.scss b/front-end/src/Shared/styles/default/_title-categories.scss
+-new file mode 100644
+-index 0000000..0a517b0
+---- /dev/null
+-+++ b/front-end/src/Shared/styles/default/_title-categories.scss
+-@@ -0,0 +1,44 @@
+-+//# Use //
+-+@use './border-radius' as border-radius;
+-+@use './text' as text;
+-+
+-+@mixin base-style($color, $size) {
+-+    display: flex;
+-+    justify-content: center;
+-+    align-items: center;
+-+
+-+    width: fit-content;
+-+    font-weight: bold;
+-+
+-+    @if $size =='small' {
+-+        height: 15px;
+-+        min-width: 55px;
+-+        font-size: text.$font-size7;
+-+    } @else if $size == 'medium' {
+-+        height: 17px;
+-+        min-width: 85px;
+-+        font-size: text.$font-size6-5;
+-+    }
+-+
+-+    padding: 0 4px;
+-+    border-radius: border-radius.$border-radius;
+-+
+-+    background-color: var($color);
+-+    color: var(--color1);
+-+}
+-+
+-+@mixin cat-contentRating($size: 'small') {
+-+    @include base-style(--color5, $size);
+-+}
+-+
+-+@mixin cat-demographic($size: 'small') {
+-+    @include base-style(--color3, $size);
+-+}
+-+
+-+@mixin cat-genre($size: 'small') {
+-+    @include base-style(--color2, $size);
+-+}
+-+
+-+@mixin cat-theme($size: 'small') {
+-+    @include base-style(--color2, $size);
+-+}
+-\ No newline at end of file
 diff --git a/front-end/src/Components/Global/Titles/featuredtitles.scss b/front-end/src/Components/Global/Titles/featuredtitles.scss
-new file mode 100644
-index 0000000..4dca942
---- /dev/null
+index 4dca942..7d8922f 100644
+--- a/front-end/src/Components/Global/Titles/featuredtitles.scss
 +++ b/front-end/src/Components/Global/Titles/featuredtitles.scss
-@@ -0,0 +1,79 @@
-+//# Use //
-+@use '../../../Shared/styles/mixins/no-select' as no-select;
-+@use '../../../Shared/styles/default/layout' as layout;
-+@use '../../../Shared/styles/default/text' as text;
-+@use '../../../Shared/styles/default/border-radius' as border-radius;
-+@use '../../../Shared/styles/default/title-categories' as title-categories;
+@@ -4,29 +4,81 @@
+ @use '../../../Shared/styles/default/text' as text;
+ @use '../../../Shared/styles/default/border-radius' as border-radius;
+ @use '../../../Shared/styles/default/title-categories' as title-categories;
++@use '../../../Shared/styles/default/transition-time' as transition-time;
+ 
+ .featuredtitles {
++    position: relative;
 +
-+.featuredtitles {
-+    width: layout.$layout-default-width;
++    display: flex;
+     width: layout.$layout-default-width;
++    overflow: hidden;
 +
-+    &__link {}
-+
-+    &__item {
++    &__track {
 +        display: flex;
-+        gap: 20px;
-+
-+        &-img {
-+            height: 100%;
-+            width: 20%;
-+            border-radius: border-radius.$border-radius;
-+            @include no-select.no-select;
-+        }
-+
-+        &-name {
-+            margin: 0;
-+            font-size: text.$font-size2;
-+        }
-+
-+        &-section {
-+            display: flex;
-+            flex-direction: column;
-+
-+            width: 70%;
-+
-+            gap: 10px;
-+        }
-+
-+        &-list {
-+            list-style: none;
-+            margin: 0;
-+            padding: 0;
-+
-+            display: flex;
-+            flex-wrap: wrap;
-+
-+            gap: 5px;
-+        }
-+
-+        &-synopsis {
-+            font-size: text.$font-size5-5;
-+        }
-+
-+        &-authors {
-+            margin: 0;
-+            margin-top: auto;
-+
-+            font-weight: bold;
-+            font-size: text.$font-size5;
-+            color: var(--color1)
-+        }
-+
-+        &-contentRating {
-+            @include title-categories.cat-contentRating('medium');
-+        }
-+
-+        &-demographic {
-+            @include title-categories.cat-demographic('medium');
-+        }
-+
-+        &-genre {
-+            @include title-categories.cat-genre('medium');
-+        }
-+
-+        &-theme {
-+            @include title-categories.cat-theme('medium');
-+        }
++        transition: transform transition-time.$transition-time * 2 ease;
 +    }
 +
-+}
-\ No newline at end of file
-diff --git a/front-end/src/Components/Global/Titles/featuredtitles.tsx b/front-end/src/Components/Global/Titles/featuredtitles.tsx
-new file mode 100644
-index 0000000..0010e7c
---- /dev/null
-+++ b/front-end/src/Components/Global/Titles/featuredtitles.tsx
-@@ -0,0 +1,61 @@
-+//# Components //
-+import Text from '../text'
-+import Link from '../link'
-+import Img from '../img'
-+//# Utils //
-+import staticMapper from '../../../Shared/utils/staticMapper'
-+//# Types //
-+import { title } from '../../../Shared/types/Data/title'
-+//# Classes //
-+import './featuredtitles.scss'
-+
-+export default function FeaturedTitles({ data }: { data: title[] }) {
-+    return (
-+        <section className='featuredtitles'>
-+            {
-+                data.map((title) => (
-+                    <Link
-+                        to={`/title/${title.id}/${title.name}`}
-+                        className='featuredtitles__link'
-+                    >
-+                        <article className='featuredtitles__item'>
-+                            <Img className={'featuredtitles__item-img'} src={`public/manga-teste.jpg`} />
-+                            <section className='featuredtitles__item-section'>
-+                                <Text not_exceed_X={true} className={`featuredtitles__item-name`} tag={'h3'}>
-+                                    {title.name}
-+                                </Text>
-+                                <ul className='featuredtitles__item-list'>
-+                                    <li>
-+                                        <Text no_select={true} not_exceed_X={true} className={`featuredtitles__item-contentRating`} tag={'span'}>
-+                                            {staticMapper("contentRatings", Number(title.contentRating))}
-+                                        </Text>
-+                                    </li>
-+                                    <li>
-+                                        <Text no_select={true} not_exceed_X={true} className={`featuredtitles__item-demographic`} tag={'span'}>
-+                                            {staticMapper("demographics", Number(title.demographic))}
-+                                        </Text>
-+                                    </li>
-+                                    {
-+                                        title.genres.slice(0, 3).map((g, i) =>
-+                                            <li key={`genre-${i}`}>
-+                                                <Text no_select={true} not_exceed_X={true} className={`featuredtitles__item-genre`} tag={'span'}>
-+                                                    {staticMapper("genres", Number(g))}
-+                                                </Text>
-+                                            </li>
-+                                        )
-+                                    }
-+                                </ul>
-+                                <Text className={'featuredtitles__item-synopsis'} tag={'span'} not_exceed_Y={true}>
-+                                    {title.synopsis}
-+                                </Text>
-+                                <Text className={'featuredtitles__item-authors'} not_exceed_X={true} tag={'p'}>
-+                                    {title?.authors.join(", ")}
-+                                </Text>
-+                            </section>
-+                        </article>
-+                    </Link>
-+                ))
-+            }
-+        </section >
-+    )
-+}
-\ No newline at end of file
-diff --git a/front-end/src/Components/Global/titlesgrid.scss b/front-end/src/Components/Global/Titles/titlesgrid.scss
-similarity index 69%
-rename from front-end/src/Components/Global/titlesgrid.scss
-rename to front-end/src/Components/Global/Titles/titlesgrid.scss
-index aa1522d..4a59080 100644
---- a/front-end/src/Components/Global/titlesgrid.scss
-+++ b/front-end/src/Components/Global/Titles/titlesgrid.scss
-@@ -1,27 +1,8 @@
- //# Use //
--@use '../../Shared/styles/mixins/no-select' as no-select;
--@use '../../Shared/styles/default/border-radius' as border-radius;
--@use '../../Shared/styles/default/layout' as layout;
--@use '../../Shared/styles/default/text' as text;
--
--@mixin box-style {
--    display: flex;
--    justify-content: center;
--    align-items: center;
--
--    height: 15px;
--    width: fit-content;
--    min-width: 55px;
--
--    padding: 0 4px;
--
--    border-radius: border-radius.$border-radius;
--    background-color: var(--color2);
--
--    color: var(--color1);
--    font-weight: bold;
--    font-size: text.$font-size7;
--}
-+@use '../../../Shared/styles/mixins/no-select' as no-select;
-+@use '../../../Shared/styles/default/border-radius' as border-radius;
-+@use '../../../Shared/styles/default/text' as text;
-+@use '../../../Shared/styles/default/title-categories' as title-categories;
++    &__slide {
++        flex: 0 0 100%;
++    }
  
- .titlegrid {
-     display: grid;
-@@ -62,7 +43,7 @@
+-    &__link {}
++    &__buttons {
++        position: absolute;
++        bottom: 0;
++        right: 8%;
+ 
+-    &__item {
++        display: flex;
++        justify-content: space-between;
++
++        width: 10%;
++        min-width: 75px;
++
++        &__button {
++            background: none;
++            border: none;
++
++            display: flex;
++            align-items: center;
++
++            width: 50%;
++            height: 2rem;
++
++            color: var(--color1);
++            font-size: text.$font-size5;
++
++            border-radius: border-radius.$border-radius;
++
++            transition: filter transition-time.$transition-time ease;
++            cursor: pointer;
++
++            &:hover {
++                filter: brightness(80%);
++            }
++
++            &--left {
++                @extend .featuredtitles__buttons__button;
++                justify-content: flex-start;
++            }
++
++            &--right {
++                @extend .featuredtitles__buttons__button;
++                justify-content: flex-end;
++            }
++        }
++    }
++    
++    &__card {
+         display: flex;
+         gap: 20px;
+ 
+-        &-img {
++        &__img {
+             height: 100%;
+             width: 20%;
+             border-radius: border-radius.$border-radius;
+             @include no-select.no-select;
+         }
+ 
+-        &-name {
+-            margin: 0;
+-            font-size: text.$font-size2;
+-        }
+-
+-        &-section {
++        &__section {
+             display: flex;
+             flex-direction: column;
+ 
+@@ -35,7 +87,13 @@
+             gap: 10px;
+         }
+ 
+-        &-list {
++        &__footer {
++            display: flex;
++            justify-content: space-between;
++            margin-top: auto;
++        }
++
++        &__list {
              list-style: none;
              margin: 0;
              padding: 0;
--            
-+
-             display: flex;
-             flex-wrap: wrap;
- 
-@@ -70,19 +51,19 @@
+@@ -46,34 +104,39 @@
+             gap: 5px;
          }
  
-         &-contentRating {
--            @include box-style;
--            background-color: var(--color5);
-+            @include title-categories.cat-contentRating;
-         }
- 
-         &-demographic {
--            @include box-style;
--            background-color: var(--color3);
-+            @include title-categories.cat-demographic;
-+        }
-+
-+        &-genre {
-+            @include title-categories.cat-genre;
-         }
- 
--        &-genre,
-         &-theme {
--            @include box-style;
--            background-color: var(--color2);
-+            @include title-categories.cat-theme;
-         }
-     }
- }
-diff --git a/front-end/src/Components/Global/titlesgrid.tsx b/front-end/src/Components/Global/Titles/titlesgrid.tsx
-similarity index 88%
-rename from front-end/src/Components/Global/titlesgrid.tsx
-rename to front-end/src/Components/Global/Titles/titlesgrid.tsx
-index 58b3dc5..bcb2422 100644
---- a/front-end/src/Components/Global/titlesgrid.tsx
-+++ b/front-end/src/Components/Global/Titles/titlesgrid.tsx
-@@ -1,20 +1,20 @@
- //# Components //
--import Text from '../Global/text'
--import Link from '../Global/link'
--import Img from '../Global/img'
-+import Text from '../text'
-+import Link from '../link'
-+import Img from '../img'
- //# Utils //
--import chunkArray from '../../Shared/utils/chunkArray'
--import staticMapper from '../../Shared/utils/staticMapper'
-+import chunkArray from '../../../Shared/utils/chunkArray'
-+import staticMapper from '../../../Shared/utils/staticMapper'
- //# Types //
--import { title } from '../../Shared/types/Data/title'
-+import { title } from '../../../Shared/types/Data/title'
- //# Config //
--import { grid } from '../../config/Components/title'
-+import { grid } from '../../../config/Components/title'
- //# Classes //
- import './titlesgrid.scss'
- 
- type TitlesGrid = {
-     data: title[],
--    variant: 'card' | 'compact' | 'hero'
-+    variant: 'card' | 'compact'
- }
- type TitleInfoConfig = {
-     contentRating?: boolean,
-@@ -23,6 +23,7 @@ type TitleInfoConfig = {
-     themes?: boolean,
-     synopsis?: boolean
- }
-+
- export default function TitlesGrid({
-     data,
-     variant
-@@ -34,10 +35,9 @@ export default function TitlesGrid({
-     const { items, columns } = grid[variant]
-     const OrganizedData = chunkArray<title>(data, items).slice(0, columns);
- 
--    function TitleInfo({ title, config }: { title: title, config: TitleInfoConfig }) {
--        const { contentRating, demographic, synopsis, genres, themes } = config
--        console.log(title.genres)
--        console.log(title.themes)
-+    function TitleInfo({ title, config }: { title: title, config?: TitleInfoConfig }) {
-+        const { contentRating, demographic, synopsis, genres, themes } = config ?? {}
-+
-         return (
-             <section className='titlegrid__item-info-container'>
-                 <Text not_exceed_X={true} className={`titlegrid__item-name`} tag={'h3'}>
-@@ -100,7 +100,7 @@ export default function TitlesGrid({
-                             alt={`Cover of ${title.name}`}
-                         />
-                         {variant === 'compact' && (
--                            <TitleInfo title={title} config={{ contentRating: true, demographic: true }} />
-+                            <TitleInfo title={title}/>
-                         )}
-                         {variant === 'card' && (
-                             <TitleInfo title={title} config={{ contentRating: true, demographic: true, genres: true, themes: true, synopsis: true }} />
-@@ -110,6 +110,7 @@ export default function TitlesGrid({
-             </li>
-         )
-     }
-+    
-     return (
-         <div
-             className={`titlegrid titlegrid--${variant}`}
-diff --git a/front-end/src/Components/Global/text.scss b/front-end/src/Components/Global/text.scss
-index e762ae2..54cbb48 100644
---- a/front-end/src/Components/Global/text.scss
-+++ b/front-end/src/Components/Global/text.scss
-@@ -18,10 +18,17 @@
-         border: 0;
-     }
- 
--    &-paragraph-div {
--        display: flex;
--        flex-direction: column;
--        gap: 15px;
-+    &-paragraph {
-+        &-div {
-+            display: flex;
-+            flex-direction: column;
-+
-+            gap: 20px;
-+        }
-+
-+        &-element {
-+            margin: 0;
-+        }
-     }
- 
-     &-title {
-diff --git a/front-end/src/Components/Global/text.tsx b/front-end/src/Components/Global/text.tsx
-index 7e5d288..ee57fad 100644
---- a/front-end/src/Components/Global/text.tsx
-+++ b/front-end/src/Components/Global/text.tsx
-@@ -45,7 +45,7 @@ function splitParagraph(tag: keyof React.JSX.IntrinsicElements, text: string, sp
-     for (let i = 0; i < splitedText.length; i += 2) {
-         const group = splitedText[i] + (splitedText[i + 1] ? '' + splitedText[i + 1] : '');
-         paragraphs.push(
--            <TxtTag className={className} key={i}>
-+            <TxtTag className={`text-paragraph-element ${className}`} key={i}>
-                 {group}
-             </TxtTag>
-         )
-diff --git a/front-end/src/Components/Header/Header.scss b/front-end/src/Components/Header/Header.scss
-index 8a13dda..d2648ef 100644
---- a/front-end/src/Components/Header/Header.scss
-+++ b/front-end/src/Components/Header/Header.scss
-@@ -95,7 +95,7 @@
-         }
- 
-         &__login {
--            @include button.button-style;
-+            @include button.button-style(var(--color3));
- 
-             text-decoration: none;
- 
-diff --git a/front-end/src/Components/Header/Header.tsx b/front-end/src/Components/Header/Header.tsx
-index f1ae68a..a2d5a45 100644
---- a/front-end/src/Components/Header/Header.tsx
-+++ b/front-end/src/Components/Header/Header.tsx
-@@ -1,7 +1,7 @@
- //# Components //
- import Link from '../Global/link'
- import Text from '../Global/text'
--import Button from '../Global/button'
-+import Button from '../Global/Inputs/button'
- import Img from '../Global/img'
- //# Libs //
- import { useWindowScroll } from 'react-use'
-diff --git a/front-end/src/Components/Home/Popular.scss b/front-end/src/Components/Home/Popular.scss
-index 21e3910..28adbd0 100644
---- a/front-end/src/Components/Home/Popular.scss
-+++ b/front-end/src/Components/Home/Popular.scss
-@@ -1,6 +1,7 @@
- //# Use
- @use '../../Shared/styles/default/layout' as layout;
- @use '../../Shared/styles/default/border-radius' as border-radius;
-+@use '../../Shared/styles/default/header' as header;
- 
- .home-popular {
-     display: flex;
-@@ -8,28 +9,7 @@
-     justify-content: center;
- 
-     width: 100%;
--    height: fit-content;
-+    height: layout.$layout-max-height / 3.5;
- 
--    background: linear-gradient(to bottom, var(--color1), var(--color4));
--
--    &__container {
--        display: flex;
--        align-items: center;
--        justify-content: center;
--
--        width: 100%;
--        height: fit-content;
--
--        max-width: layout.$layout-max-width / 1.25;
--        max-height: layout.$layout-max-height;
--
--        padding-top: 150px;
--        padding-bottom: 150px;
--
--        &__template-img {
--            height: 100%;
--            width: 11%;
--            border-radius: border-radius.$border-radius;
+-        &-synopsis {
+-            font-size: text.$font-size5-5;
 -        }
--    }
-+    background: linear-gradient(to bottom, var(--color1), var(--color3));
+-
+-        &-authors {
++        &__name {
+             margin: 0;
+-            margin-top: auto;
++            font-size: text.$font-size2;
++        }
+ 
+-            font-weight: bold;
+-            font-size: text.$font-size5;
+-            color: var(--color1)
++        &__synopsis {
++            font-size: text.$font-size5-5;
+         }
+ 
+-        &-contentRating {
++        &__contentRating {
+             @include title-categories.cat-contentRating('medium');
+         }
+ 
+-        &-demographic {
++        &__demographic {
+             @include title-categories.cat-demographic('medium');
+         }
+ 
+-        &-genre {
++        &__genre {
+             @include title-categories.cat-genre('medium');
+         }
+ 
+-        &-theme {
++        &__theme {
+             @include title-categories.cat-theme('medium');
+         }
++
++        &__authors {
++            margin: 0;
++            min-width: 85%;
++
++            color: var(--color1);
++            font-weight: bold;
++            font-size: text.$font-size5;
++        }
+     }
+ 
+ }
+\ No newline at end of file
+diff --git a/front-end/src/Components/Global/Titles/featuredtitles.tsx b/front-end/src/Components/Global/Titles/featuredtitles.tsx
+index 0010e7c..10f0761 100644
+--- a/front-end/src/Components/Global/Titles/featuredtitles.tsx
++++ b/front-end/src/Components/Global/Titles/featuredtitles.tsx
+@@ -2,60 +2,108 @@
+ import Text from '../text'
+ import Link from '../link'
+ import Img from '../img'
++import Button from '../Inputs/button'
++//# Libs //
++import { useState } from 'react'
+ //# Utils //
+ import staticMapper from '../../../Shared/utils/staticMapper'
+ //# Types //
+ import { title } from '../../../Shared/types/Data/title'
+ //# Classes //
+ import './featuredtitles.scss'
++//# Icons //
++import { FaChevronLeft } from "react-icons/fa"
++import { FaChevronRight } from "react-icons/fa"
++
+ 
+ export default function FeaturedTitles({ data }: { data: title[] }) {
++    const [titleIndex, setTitleIndex] = useState(0)
++
++    function handleTitleSwitch(direction: number) {
++        let newIndex = titleIndex + direction;
++
++        if (newIndex < 0)
++            newIndex = data.length - 1;
++        if (newIndex >= data.length)
++            newIndex = 0;
++
++        setTitleIndex(newIndex)
++    }
++
+     return (
+-        <section className='featuredtitles'>
+-            {
+-                data.map((title) => (
+-                    <Link
+-                        to={`/title/${title.id}/${title.name}`}
+-                        className='featuredtitles__link'
+-                    >
+-                        <article className='featuredtitles__item'>
+-                            <Img className={'featuredtitles__item-img'} src={`public/manga-teste.jpg`} />
+-                            <section className='featuredtitles__item-section'>
+-                                <Text not_exceed_X={true} className={`featuredtitles__item-name`} tag={'h3'}>
+-                                    {title.name}
+-                                </Text>
+-                                <ul className='featuredtitles__item-list'>
+-                                    <li>
+-                                        <Text no_select={true} not_exceed_X={true} className={`featuredtitles__item-contentRating`} tag={'span'}>
+-                                            {staticMapper("contentRatings", Number(title.contentRating))}
++        <section className='featuredtitles' >
++            <div className='featuredtitles__track' style={{ transform: `translateX(-${titleIndex * 100}%)` }}>
++                {
++                    data.map((title: title) => {
++                        return (
++                            <Link
++                                to={`/title/${title.id}/${title.name}`}
++                                className='featuredtitles__slide'
++                            >
++                                <article className='featuredtitles__card'>
++                                    <Img className={'featuredtitles__card__img'} src={`public/manga-teste.jpg`} />
++                                    <section className='featuredtitles__card__section'>
++                                        <Text not_exceed_X={true} className={`featuredtitles__card__name`} tag={'h3'}>
++                                            {title.name}
+                                         </Text>
+-                                    </li>
+-                                    <li>
+-                                        <Text no_select={true} not_exceed_X={true} className={`featuredtitles__item-demographic`} tag={'span'}>
+-                                            {staticMapper("demographics", Number(title.demographic))}
+-                                        </Text>
+-                                    </li>
+-                                    {
+-                                        title.genres.slice(0, 3).map((g, i) =>
+-                                            <li key={`genre-${i}`}>
+-                                                <Text no_select={true} not_exceed_X={true} className={`featuredtitles__item-genre`} tag={'span'}>
+-                                                    {staticMapper("genres", Number(g))}
++                                        <ul className='featuredtitles__card__list'>
++                                            <li>
++                                                <Text no_select={true} not_exceed_X={true} className={`featuredtitles__card__contentRating`} tag={'span'}>
++                                                    {staticMapper("contentRatings", Number(title.contentRating))}
++                                                </Text>
++                                            </li>
++                                            <li>
++                                                <Text no_select={true} not_exceed_X={true} className={`featuredtitles__card__demographic`} tag={'span'}>
++                                                    {staticMapper("demographics", Number(title.demographic))}
+                                                 </Text>
+                                             </li>
+-                                        )
+-                                    }
+-                                </ul>
+-                                <Text className={'featuredtitles__item-synopsis'} tag={'span'} not_exceed_Y={true}>
+-                                    {title.synopsis}
+-                                </Text>
+-                                <Text className={'featuredtitles__item-authors'} not_exceed_X={true} tag={'p'}>
+-                                    {title?.authors.join(", ")}
+-                                </Text>
+-                            </section>
+-                        </article>
+-                    </Link>
+-                ))
+-            }
+-        </section >
++                                            {
++                                                title.genres.slice(0, 5).map((g, i) =>
++                                                    <li key={`genre-${i}`}>
++                                                        <Text no_select={true} not_exceed_X={true} className={`featuredtitles__card__genre`} tag={'span'}>
++                                                            {staticMapper("genres", Number(g))}
++                                                        </Text>
++                                                    </li>
++                                                )
++                                            }
++                                        </ul>
++                                        <Text className={'featuredtitles__card__synopsis'} tag={'span'} not_exceed_Y={true}>
++                                            {title.synopsis}
++                                        </Text>
++                                        <footer className='featuredtitles__card__footer'>
++                                            <Text className={'featuredtitles__card__authors'} not_exceed_X={true} tag={'p'}>
++                                                {title?.authors.slice(0, 6).join(", ")}
++                                            </Text>
++                                        </footer>
++                                    </section>
++                                </article>
++                            </Link>
++                        )
++                    })
++                }
++            </div>
++            <div className='featuredtitles__buttons'>
++                <Button
++                    className='featuredtitles__buttons__button--left'
++                    icon={<FaChevronLeft />}
++                    defaultStyle={false}
++                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
++                        e.preventDefault()
++                        e.stopPropagation()
++                        handleTitleSwitch(-1)
++                    }}
++                />
++                <Button
++                    className='featuredtitles__buttons__button--right'
++                    icon={<FaChevronRight />}
++                    defaultStyle={false}
++                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
++                        e.preventDefault()
++                        e.stopPropagation()
++                        handleTitleSwitch(1)
++                    }}
++                />
++            </div>
++        </section>
+     )
  }
 \ No newline at end of file
 diff --git a/front-end/src/Components/Home/Popular.tsx b/front-end/src/Components/Home/Popular.tsx
-index 46bfdfe..3ead868 100644
+index 3ead868..8417b4d 100644
 --- a/front-end/src/Components/Home/Popular.tsx
 +++ b/front-end/src/Components/Home/Popular.tsx
-@@ -1,16 +1,31 @@
- //# Components //
--import Img from '../Global/img'
-+import FeaturedTitles from '../Global/Titles/featuredtitles'
-+import Text from '../Global/text'
-+//# Libs //
-+import { useState, useEffect } from 'react'
-+//# Api //
-+import { GetAllTitles } from '../../Shared/api/FetchTitle'
-+//# Types //
-+import { title } from '../../Shared/types/Data/title'
- //# Classes //
- import './popular.scss'
+@@ -15,7 +15,7 @@ export default function Popular() {
  
- export default function Popular() {
-+    const [data, setData] = useState<title[]>([])
-+
-+    // essa data aqui é temporaria, ela vai ser utilizada para testar o popular/featuredtitles
-+    async function req() {
-+        setData(await GetAllTitles(1))
-+    }
-+
-+    useEffect(() => {
-+        req()
-+    }, [])
-+
-     return (
-         <>
-             <div className='home-popular'>
--                <div className='home-popular__container'>
--                    <Img className={'home-popular__container__template-img'} src={`public/manga-teste.jpg`} />
--                </div>
--                
-+                <FeaturedTitles data={data}/>
-             </div>
-         </>
-     )
-diff --git a/front-end/src/Components/Home/Updates.tsx b/front-end/src/Components/Home/Updates.tsx
-index fdd3fea..991f367 100644
---- a/front-end/src/Components/Home/Updates.tsx
-+++ b/front-end/src/Components/Home/Updates.tsx
-@@ -1,6 +1,6 @@
- //# Components //
- import Text from '../Global/text'
--import TitleGrid from '../Global/titlesgrid'
-+import TitleGrid from '../Global/Titles/titlesgrid'
- //# Libs //
- import { useState, useEffect } from 'react'
- //# Api //
-diff --git a/front-end/src/Components/Search/search.tsx b/front-end/src/Components/Search/search.tsx
-index c8d09ab..7e5bdf5 100644
---- a/front-end/src/Components/Search/search.tsx
-+++ b/front-end/src/Components/Search/search.tsx
-@@ -1,11 +1,11 @@
- //# Components //
- import Text from '../Global/text'
- import Link from '../Global/link'
--import Input from '../Global/input'
--import Button from '../Global/button'
--import RadioInput from '../Global/radioinput'
--import CheckBoxInput from '../Global/checkboxinput'
--import TitleGrid from '../Global/titlesgrid'
-+import Input from '../Global/Inputs/input'
-+import Button from '../Global/Inputs/button'
-+import RadioInput from '../Global/Inputs/radioinput'
-+import CheckBoxInput from '../Global/Inputs/checkboxinput'
-+import TitleGrid from '../Global/Titles/titlesgrid'
- //# Libs //
- import { useState, useEffect, useId, useRef } from 'react'
- //# Api //
-diff --git a/front-end/src/Components/Title/title.scss b/front-end/src/Components/Title/title.scss
-index ea38370..31e7f3a 100644
---- a/front-end/src/Components/Title/title.scss
-+++ b/front-end/src/Components/Title/title.scss
-@@ -181,7 +181,7 @@ $text-shadow: 0px 0px 15px var(--text-color);
-                 justify-content: center;
-                 align-items: center;
- 
--                height: 20px;
-+                height: 15px;
- 
-                 width: fit-content;
-                 min-width: 60px;
-diff --git a/front-end/src/Components/Title/title.tsx b/front-end/src/Components/Title/title.tsx
-index 6579c3c..d9ccead 100644
---- a/front-end/src/Components/Title/title.tsx
-+++ b/front-end/src/Components/Title/title.tsx
-@@ -1,6 +1,6 @@
- //# Components //
- import Text from '../Global/text'
--import Button from '../Global/button'
-+import Button from '../Global/Inputs/button'
- import Img from '../Global/img'
- //# Libs //
- import { useEffect, useState } from 'react'
-diff --git a/front-end/src/Shared/styles/default/_button.scss b/front-end/src/Shared/styles/default/_button.scss
-index d92b0b0..fc195f5 100644
---- a/front-end/src/Shared/styles/default/_button.scss
-+++ b/front-end/src/Shared/styles/default/_button.scss
-@@ -6,16 +6,16 @@
-     border: 1px solid $color;
- }
- 
--@mixin button-style {
--    @include button-border(var(--color3));
-+@mixin button-style($color: var(--color3)) {
-+    @include button-border($color);
- 
--    background-color: var(--color3);
-+    background-color: $color;
-     border-radius: border-radius.$border-radius;
- 
-     transition: filter transition-time.$transition-time ease;
-     
-     &:hover {
-         cursor: pointer;
--        filter: brightness(80%);
-+        filter: brightness(90%);
+     // essa data aqui é temporaria, ela vai ser utilizada para testar o popular/featuredtitles
+     async function req() {
+-        setData(await GetAllTitles(1))
++        setData(await GetAllTitles(10))
      }
- }
-\ No newline at end of file
-diff --git a/front-end/src/Shared/styles/default/_text.scss b/front-end/src/Shared/styles/default/_text.scss
-index fd3529a..c0eb9fe 100644
---- a/front-end/src/Shared/styles/default/_text.scss
-+++ b/front-end/src/Shared/styles/default/_text.scss
-@@ -6,7 +6,9 @@ $font-size2: 1.75rem;
- $font-size3: 1.5rem;
- $font-size4: 1.25rem;
- $font-size5: 1rem;
-+$font-size5-5: 0.875rem;
- $font-size6: 0.75rem;
-+$font-size6-5: 0.625rem;
- $font-size7: 0.5rem;
  
- $font-family: hind, simhei, verdana, Helvetica, sans-serif;
-diff --git a/front-end/src/Shared/styles/default/_title-categories.scss b/front-end/src/Shared/styles/default/_title-categories.scss
-new file mode 100644
-index 0000000..0a517b0
---- /dev/null
-+++ b/front-end/src/Shared/styles/default/_title-categories.scss
-@@ -0,0 +1,44 @@
-+//# Use //
-+@use './border-radius' as border-radius;
-+@use './text' as text;
-+
-+@mixin base-style($color, $size) {
-+    display: flex;
-+    justify-content: center;
-+    align-items: center;
-+
-+    width: fit-content;
-+    font-weight: bold;
-+
-+    @if $size =='small' {
-+        height: 15px;
-+        min-width: 55px;
-+        font-size: text.$font-size7;
-+    } @else if $size == 'medium' {
-+        height: 17px;
-+        min-width: 85px;
-+        font-size: text.$font-size6-5;
-+    }
-+
-+    padding: 0 4px;
-+    border-radius: border-radius.$border-radius;
-+
-+    background-color: var($color);
-+    color: var(--color1);
-+}
-+
-+@mixin cat-contentRating($size: 'small') {
-+    @include base-style(--color5, $size);
-+}
-+
-+@mixin cat-demographic($size: 'small') {
-+    @include base-style(--color3, $size);
-+}
-+
-+@mixin cat-genre($size: 'small') {
-+    @include base-style(--color2, $size);
-+}
-+
-+@mixin cat-theme($size: 'small') {
-+    @include base-style(--color2, $size);
-+}
-\ No newline at end of file
+     useEffect(() => {

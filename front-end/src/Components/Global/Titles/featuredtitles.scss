@@ -4,29 +4,81 @@
 @use '../../../Shared/styles/default/text' as text;
 @use '../../../Shared/styles/default/border-radius' as border-radius;
 @use '../../../Shared/styles/default/title-categories' as title-categories;
+@use '../../../Shared/styles/default/transition-time' as transition-time;
 
 .featuredtitles {
+    position: relative;
+
+    display: flex;
     width: layout.$layout-default-width;
+    overflow: hidden;
 
-    &__link {}
+    &__track {
+        display: flex;
+        transition: transform transition-time.$transition-time * 2 ease;
+    }
 
-    &__item {
+    &__slide {
+        flex: 0 0 100%;
+    }
+
+    &__buttons {
+        position: absolute;
+        bottom: 0;
+        right: 8%;
+
+        display: flex;
+        justify-content: space-between;
+
+        width: 10%;
+        min-width: 75px;
+
+        &__button {
+            background: none;
+            border: none;
+
+            display: flex;
+            align-items: center;
+
+            width: 50%;
+            height: 2rem;
+
+            color: var(--color1);
+            font-size: text.$font-size5;
+
+            border-radius: border-radius.$border-radius;
+
+            transition: filter transition-time.$transition-time ease;
+            cursor: pointer;
+
+            &:hover {
+                filter: brightness(80%);
+            }
+
+            &--left {
+                @extend .featuredtitles__buttons__button;
+                justify-content: flex-start;
+            }
+
+            &--right {
+                @extend .featuredtitles__buttons__button;
+                justify-content: flex-end;
+            }
+        }
+    }
+    
+    &__card {
         display: flex;
         gap: 20px;
 
-        &-img {
+        &__img {
             height: 100%;
             width: 20%;
             border-radius: border-radius.$border-radius;
             @include no-select.no-select;
         }
 
-        &-name {
-            margin: 0;
-            font-size: text.$font-size2;
-        }
-
-        &-section {
+        &__section {
             display: flex;
             flex-direction: column;
 
@@ -35,7 +87,13 @@
             gap: 10px;
         }
 
-        &-list {
+        &__footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+        }
+
+        &__list {
             list-style: none;
             margin: 0;
             padding: 0;
@@ -46,33 +104,38 @@
             gap: 5px;
         }
 
-        &-synopsis {
+        &__name {
+            margin: 0;
+            font-size: text.$font-size2;
+        }
+
+        &__synopsis {
             font-size: text.$font-size5-5;
         }
 
-        &-authors {
-            margin: 0;
-            margin-top: auto;
-
-            font-weight: bold;
-            font-size: text.$font-size5;
-            color: var(--color1)
-        }
-
-        &-contentRating {
+        &__contentRating {
             @include title-categories.cat-contentRating('medium');
         }
 
-        &-demographic {
+        &__demographic {
             @include title-categories.cat-demographic('medium');
         }
 
-        &-genre {
+        &__genre {
             @include title-categories.cat-genre('medium');
         }
 
-        &-theme {
+        &__theme {
             @include title-categories.cat-theme('medium');
+        }
+
+        &__authors {
+            margin: 0;
+            min-width: 85%;
+
+            color: var(--color1);
+            font-weight: bold;
+            font-size: text.$font-size5;
         }
     }
 

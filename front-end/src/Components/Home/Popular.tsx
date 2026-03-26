@@ -15,7 +15,7 @@ export default function Popular() {
 
     // essa data aqui é temporaria, ela vai ser utilizada para testar o popular/featuredtitles
     async function req() {
-        setData(await GetAllTitles(1))
+        setData(await GetAllTitles(10))
     }
 
     useEffect(() => {
