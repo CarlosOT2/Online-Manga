@@ -35,17 +35,17 @@ export default function Header() {
                                 <Logo />
                             </li>
                             <li>
-                                <Link to={'/search'} className='header__nav__link'>
+                                <Link to={'/titles/search'} className='header__nav__link'>
                                     SEARCH
                                 </Link>
                             </li>
                             <li>
-                                <Link to={'/latestupdates'} className='header__nav__link'>
+                                <Link to={'/titles/latestupdates'} className='header__nav__link'>
                                     LATEST UPDATES
                                 </Link>
                             </li>
                             <li>
-                                <Link to={'/recentlyadded'} className='header__nav__link'>
+                                <Link to={'/titles/recentlyadded'} className='header__nav__link'>
                                     RECENTLY ADDED
                                 </Link>
                             </li>

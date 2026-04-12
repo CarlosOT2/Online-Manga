@@ -1,0 +1,14 @@
+//# Uses //
+@use '../../Shared/styles/default/layout' as layout;
+
+.latestupdates {
+    display: flex;
+    width: 100%;
+
+    justify-content: center;
+
+    &__result {
+        margin-top: 20px;
+        max-width: layout.$layout-default-width;
+    }
+}

@@ -96,7 +96,7 @@ export default function TitlesGrid({
                     <article className='titlegrid__item-article'>
                         <Img
                             className={'titlegrid__item-img'}
-                            src={`public/manga-teste.jpg`}
+                            src={`/manga-teste.jpg`}
                             alt={`Cover of ${title.name}`}
                         />
                         {variant === 'compact' && (

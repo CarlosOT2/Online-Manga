@@ -150,7 +150,7 @@ function SectionChapters() {
 export default function Title() {
 
     //.. Variables
-    const { name, id } = useParams();
+    const { id } = useParams();
 
     //.. States
     const [data, setData] = useState<title>()

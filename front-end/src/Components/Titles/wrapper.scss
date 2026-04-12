@@ -1,0 +1,34 @@
+//# Uses //
+@use '../../Shared/styles/default/text' as text;
+@use '../../Shared/styles/default/layout' as layout;
+@use '../../Shared/styles/default/header' as header;
+
+.wrapper {
+    display: flex;
+    justify-content: center;
+
+    width: 100%;
+
+    &__container {
+        display: flex;
+        height: fit-content;
+
+        width: layout.$layout-default-width;
+
+        padding-top: header.$height-size + 50px;
+        padding-bottom: 10px;
+        gap: 30px;
+
+        h2 {
+            margin: 0;
+            font-size: text.$font-size2;
+        }
+
+        a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+
+}

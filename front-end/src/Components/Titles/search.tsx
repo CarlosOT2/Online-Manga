@@ -1,6 +1,5 @@
 //# Components //
 import Text from '../Global/text'
-import Link from '../Global/link'
 import Input from '../Global/Inputs/input'
 import Button from '../Global/Inputs/button'
 import RadioInput from '../Global/Inputs/radioinput'
@@ -21,7 +20,6 @@ import type { InputsController } from '../../Shared/types/FormController'
 //# Classes //
 import './search.scss'
 //# Icons //
-import { IoMdArrowBack } from "react-icons/io";
 import { IoIosArrowDown } from "react-icons/io";
 import { MdOutlineUnfoldMore } from "react-icons/md";
 import { HiMiniMagnifyingGlass } from "react-icons/hi2";
@@ -233,16 +231,7 @@ export default function Search() {
     }, [showFilters])
 
     return (
-        <main className='search'>
-            <div className='search__container-title'>
-                <Link to='/'>
-                    <IoMdArrowBack size={25} />
-                </Link>
-                <Text tag='h2' title={true}>
-                    Search
-                </Text>
-            </div>
-
+        <div className='search'>
             <form
                 ref={formRef}
                 className='search__form'
@@ -336,6 +325,6 @@ export default function Search() {
                 </Text>
                 <TitleGrid data={data} variant={'card'} />
             </section>
-        </main >
+        </div >
     )
 }
