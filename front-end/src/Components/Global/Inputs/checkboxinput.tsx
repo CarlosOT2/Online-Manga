@@ -50,17 +50,13 @@ export default function checkboxinput({
     
     const frmtd_classNameLabel: string = `
        checkboxinput-label 
-       ${checked ? 'checkboxinput-label--selected' : ''}
        ${classNameLabel}
        `
     const frmtd_classNameInput: string = `
        checkboxinput-input 
        ${classNameInput}
        `
-    const frmtd_classNameText: string = `
-       checkboxinput-text 
-       ${checked ? 'checkboxinput-text--selected' : ''}
-       `
+    const frmtd_classNameText: string = `checkboxinput-text`
 
     return (
         <>

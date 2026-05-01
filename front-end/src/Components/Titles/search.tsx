@@ -2,11 +2,13 @@
 import Text from '../Global/text'
 import Input from '../Global/Inputs/input'
 import Button from '../Global/Inputs/button'
-import RadioInput from '../Global/Inputs/radioinput'
 import CheckBoxInput from '../Global/Inputs/checkboxinput'
 import TitleGrid from '../Global/Titles/titlesgrid'
 //# Libs //
 import { useState, useEffect, useId, useRef } from 'react'
+import FilterClasses from '../../Shared/utils/FilterClasses'
+import isPlainObject from '../../Shared/utils/isPlainObject'
+import { staticMapper, getAllStaticKeys } from '../../Shared/utils/staticHandler'
 //# Api //
 import { GetTitlesByFilters } from '../../Shared/api/FetchTitle'
 //# Services //
@@ -38,16 +40,16 @@ type Faceted = {
     InputsController: InputsController;
 }
 
-type SingleSelect = {
-    type: 'singleselect';
+type MultiDropDown = {
+    type: 'multidropdown';
     label: string;
     options: staticData[];
     state: state;
     InputsController: InputsController;
 }
 
-type SelectAddiction = {
-    type: 'selectaddiction';
+type SelectText = {
+    type: 'selecttext';
     label: string;
     options?: undefined;
     state: state;
@@ -63,8 +65,9 @@ type SearchNumber = {
 }
 
 //.. Local Components //
-function FilterItem({ type, label, options, state, InputsController }: Faceted | SingleSelect | SelectAddiction | SearchNumber) {
+function FilterItem({ type, label, options, state, InputsController }: Faceted | MultiDropDown | SelectText | SearchNumber) {
     const id = `label_${useId()}`
+
     const { showFilterItem, setShowFilterItem } = state
     const InputName = `search${label.replace(/\s+/g, '').replace(/^./, c => c.toUpperCase())}`
 
@@ -88,19 +91,57 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
                     defaultStyle={false}
                     className='search__filters-button'
                 >
-                    <Text tag='span' no_select={true}>
-                        None
+                    <Text tag='span' no_select={true} not_exceed_X={true}>
+                        {
+                            (() => {
+                                const value = InputsController.data[InputName];
+
+                                // MultiDropDown
+                                if (Array.isArray(value) && value.length > 0 && Array.isArray(options)) {
+                                    return value
+                                        .map(v => options.find((obj: staticData) => obj.id === Number(v))?.name)
+                                        .join(", ");
+                                }
+
+                                // SelectText & SelectNumber
+                                if ((typeof value === "string" || typeof value === "number") && !options) {
+                                    return value.toString() || "None";
+                                }
+
+                                // Faceted
+                                if (isPlainObject(options) && Object.values(options).every(Array.isArray)) {
+                                    const optionsKeys = Object.keys(options);
+                                    const staticKeys = getAllStaticKeys()
+
+                                    const values = optionsKeys.flatMap((key) => {
+                                        const frmtdKey = key.toLowerCase() as keyof staticDataArray
+
+                                        if (!staticKeys.includes(frmtdKey)) {
+                                            console.error(`Invalid key "${key}". Cannot format value because it does not exist in data returned by GetAllStatic().`)
+                                            return null
+                                        }
+
+                                        const keyValues = InputsController.data[`${InputName}_${key}`] ?? []
+                                        return keyValues.map((value: string) => staticMapper(frmtdKey, Number(value)))
+                                    })
+
+                                    if (values.length > 0) return values.join(", ")
+                                }
+
+                                return "None";
+                            })()
+                        }
                     </Text>
                 </Button>
                 {showFilterItem === label && (
                     <div
-                        className={`
+                        className={FilterClasses(`
                         search__filters-item__options
                         ${type === "faceted" ? "search__filters-item__options--faceted" : ""}
-                        ${type === "singleselect" ? "search__filters-item__options--singleselect" : ""}
-                        ${type === "selectaddiction" ? "search__filters-item__options--selectaddiction" : ""}
+                        ${type === "multidropdown" ? "search__filters-item__options--multidropdown" : ""}
+                        ${type === "selecttext" ? "search__filters-item__options--selecttext" : ""}
                         ${type === "searchnumber" ? "search__filters-item__options--searchnumber" : ""}
-                        `}
+                        `)}
                     >
                         {
                             type === "faceted" ?
@@ -125,22 +166,22 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
                                         </ul>
                                     </section>
                                 ))
-                                : type === "singleselect" ?
+                                : type === "multidropdown" ?
                                     <ul>
                                         {
                                             options.map(option => (
                                                 <li key={option.name}>
-                                                    <RadioInput
-                                                        label={option.name}
+                                                    <CheckBoxInput
                                                         value={option.id}
-                                                        name={InputName}
+                                                        label={option.name}
+                                                        name={`${InputName}`}
                                                         InputsController={InputsController}
                                                     />
                                                 </li>
                                             ))
                                         }
                                     </ul>
-                                    : type == "selectaddiction" ?
+                                    : type == "selecttext" ?
                                         <>
                                             <Input
                                                 type='text'
@@ -186,34 +227,32 @@ export default function Search() {
 
     async function handleSubmit(data: {
         searchName: string,
-        searchAuthors: string[],
-        searchArtists: string[],
+        searchAuthor: string,
+        searchArtist: string,
 
-        searchContentRating: string,
-        searchDemographic: string,
+        searchContentRating: string[],
+        searchDemographic: string[],
+        searchStatus: string[],
         searchPublicationYear: string,
-        searchStatus: string,
 
         searchTags_Genres: string[],
         searchTags_Themes: string[]
     }) {
-
         const res = await GetTitlesByFilters({
             name: data.searchName,
-            authors: data.searchAuthors,
-            artists: data.searchArtists,
+            author: data.searchAuthor,
+            artist: data.searchArtist,
 
-            contentRatingId: data.searchContentRating,
-            demographicId: data.searchDemographic,
+            contentRatingIds: data.searchContentRating,
+            demographicIds: data.searchDemographic,
+            statusIds: data.searchStatus,
             publicationYear: data.searchPublicationYear,
-            statusId: data.searchStatus,
 
             genresIds: data.searchTags_Genres,
             themesIds: data.searchTags_Themes,
 
         })
-        
-        console.log(res)
+
         if (res) setData(res)
 
     }
@@ -276,35 +315,35 @@ export default function Search() {
                                 InputsController={InputsController}
                             />
                             <FilterItem
-                                type={"singleselect"}
+                                type={"multidropdown"}
                                 label="Content Rating"
                                 options={staticData.contentRatings}
                                 state={{ showFilterItem, setShowFilterItem }}
                                 InputsController={InputsController}
                             />
                             <FilterItem
-                                type={"singleselect"}
+                                type={"multidropdown"}
                                 label="Demographic"
                                 options={staticData.demographics}
                                 state={{ showFilterItem, setShowFilterItem }}
                                 InputsController={InputsController}
                             />
                             <FilterItem
-                                type={"singleselect"}
+                                type={"multidropdown"}
                                 label="Status"
                                 options={staticData.statuses}
                                 state={{ showFilterItem, setShowFilterItem }}
                                 InputsController={InputsController}
                             />
                             <FilterItem
-                                type={"selectaddiction"}
-                                label="Authors"
+                                type={"selecttext"}
+                                label="Author"
                                 state={{ showFilterItem, setShowFilterItem }}
                                 InputsController={InputsController}
                             />
                             <FilterItem
-                                type={"selectaddiction"}
-                                label="Artists"
+                                type={"selecttext"}
+                                label="Artist"
                                 state={{ showFilterItem, setShowFilterItem }}
                                 InputsController={InputsController}
                             />

@@ -46,26 +46,26 @@ namespace back_end.Controllers
         [HttpGet("search")]
         public async Task<ActionResult<List<DTOs.Title>>> SearchTitle(
             [FromQuery] string? name,
-            [FromQuery] string[]? authors,
-            [FromQuery] string[]? artists,
+            [FromQuery] string? author,
+            [FromQuery] string? artist,
             [FromQuery] int[]? genresIds,
             [FromQuery] int[]? themesIds,
-            [FromQuery] int? publicationYear,
-            [FromQuery] int? statusId,
-            [FromQuery] int? demographicId,
-            [FromQuery] int? contentRatingId
+            [FromQuery] int[]? demographicIds,
+            [FromQuery] int[]? statusIds,
+            [FromQuery] int[]? contentRatingIds,
+            [FromQuery] int? publicationYear
             )
         {
             Result<List<DTOs.Title>> result = await _dbAccess.GetTitlesByFilters(
                 name,
-                authors,
-                artists,
+                author,
+                artist,
                 genresIds,
                 themesIds,
-                publicationYear,
-                demographicId,
-                statusId,
-                contentRatingId
+                demographicIds,
+                statusIds,
+                contentRatingIds,
+                publicationYear
                 );
 
             if (result.IsFailure)

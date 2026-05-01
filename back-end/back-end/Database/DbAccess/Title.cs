@@ -2,6 +2,7 @@
 using back_end.Database.DbAccess.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using back_end.Shared.Core;
+using back_end.Models;
 
 namespace back_end.Database.DbAccess
 {
@@ -75,14 +76,14 @@ namespace back_end.Database.DbAccess
         }
         public async Task<Result<List<DTOs.Title>>> GetTitlesByFilters(
             string? name,
-            string[]? authors,
-            string[]? artists,
+            string? author,
+            string? artist,
             int[]? genresIds,
             int[]? themesIds,
-            int? publicationYear,
-            int? demographicId,
-            int? statusId,
-            int? contentRatingId
+            int[]? demographicIds,
+            int[]? statusIds,
+            int[]? contentRatingIds,
+            int? publicationYear
             )
         {
             try
@@ -93,13 +94,13 @@ namespace back_end.Database.DbAccess
                 if (!string.IsNullOrWhiteSpace(name))
                     query = query.Where(t => EF.Functions.ILike(t.name, $"%{name}%"));
 
-                //? Authors
-                if (authors?.Length >= 1)
-                    query = query.Where(t => authors.All(a => t.authors.Any(aut => EF.Functions.ILike(aut, "%" + a + "%"))));
+                //? Author
+                if (!string.IsNullOrWhiteSpace(author))
+                    query = query.Where(t => t.authors.Any(aut => EF.Functions.ILike(aut, $"%{author}%")));
 
-                //? Artists
-                if (artists?.Length >= 1)
-                    query = query.Where(t => artists.All(a => t.artists.Any(art => EF.Functions.ILike(art, "%" + a + "%"))));
+                //? Artist
+                if (!string.IsNullOrWhiteSpace(artist))
+                    query = query.Where(t => t.artists.Any(art => EF.Functions.ILike(art, $"%{artist}%")));
 
                 //? Genres
                 if (genresIds?.Length >= 1)
@@ -109,21 +110,21 @@ namespace back_end.Database.DbAccess
                 if (themesIds?.Length >= 1)
                     query = query.Where(t => themesIds.All(id => t.themes.Contains(id)));
 
+                //? Demographic
+                if (demographicIds?.Length >= 1)
+                    query = query.Where(t => demographicIds.Contains(t.Demographic));
+
+                //? Status
+                if (statusIds?.Length >= 1)
+                    query = query.Where(t => statusIds.Contains(t.Status));
+
+                //? Content Rating
+                if (contentRatingIds?.Length >= 1)
+                    query = query.Where(t => contentRatingIds.Contains(t.ContentRating));
+
                 //? Publication Year
                 if (publicationYear.HasValue)
                     query = query.Where(t => t.publicationDate.Year == publicationYear.Value);
-
-                //? Demographic
-                if (demographicId.HasValue)
-                    query = query.Where(t => t.Demographic == demographicId.Value);
-
-                //? Status
-                if (statusId.HasValue)
-                    query = query.Where(t => t.Status == statusId.Value);
-
-                //? Content Rating
-                if (contentRatingId.HasValue)
-                    query = query.Where(t => t.ContentRating == contentRatingId.Value);
 
                 List<DTOs.Title> titles = await RunQuery(query);
                 return Result<List<DTOs.Title>>.Success(titles);

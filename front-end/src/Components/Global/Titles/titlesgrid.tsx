@@ -4,7 +4,7 @@ import Link from '../link'
 import Img from '../img'
 //# Utils //
 import chunkArray from '../../../Shared/utils/chunkArray'
-import staticMapper from '../../../Shared/utils/staticMapper'
+import { staticMapper } from '../../../Shared/utils/staticHandler'
 //# Types //
 import { title } from '../../../Shared/types/Data/title'
 //# Config //

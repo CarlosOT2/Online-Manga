@@ -30,6 +30,7 @@ export function useFormController(config: config) {
         changeValue: changeValue,
         data: data,
     }
+    
     function onChange(event: React.ChangeEvent<HTMLInputElement>) {
         const { name, value, type } = event.target
 

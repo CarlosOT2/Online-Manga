@@ -12,14 +12,14 @@ namespace back_end.Database.DbAccess.Interfaces
 
         Task<Result<List<DTOs.Title>>> GetTitlesByFilters(
             string? name,
-            string[]? authors,
-            string[]? artists,
+            string? author,
+            string? artist,
             int[]? genresIds,
             int[]? themesIds,
-            int? publicationYear,
-            int? demographicId,
-            int? statusId,
-            int? contentRatingId
+            int[]? demographicIds,
+            int[]? statusIds,
+            int[]? contentRatingIds,
+            int? publicationYear
             );
     }
 }

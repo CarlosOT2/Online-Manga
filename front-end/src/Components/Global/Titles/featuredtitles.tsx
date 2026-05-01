@@ -6,7 +6,7 @@ import Button from '../Inputs/button'
 //# Libs //
 import { useState } from 'react'
 //# Utils //
-import staticMapper from '../../../Shared/utils/staticMapper'
+import { staticMapper } from '../../../Shared/utils/staticHandler'
 //# Types //
 import { title } from '../../../Shared/types/Data/title'
 //# Classes //

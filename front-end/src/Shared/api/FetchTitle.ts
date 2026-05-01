@@ -13,14 +13,14 @@ export async function GetTitleById(id: number) {
 
 export async function GetTitlesByFilters(data: {
     name?: string,
-    authors?: string[],
-    artists?: string[],
+    author?: string,
+    artist?: string,
     genresIds?: number[] | string[],
     themesIds?: number[] | string[],
+    statusIds?: number[] | string[],
+    demographicIds?: number[] | string[],
+    contentRatingIds?: number[] | string[],
     publicationYear?: number | string,
-    statusId?: number | string,
-    demographicId?: number | string,
-    contentRatingId?: number | string,
 }) {
 
     const params = new URLSearchParams()
@@ -28,12 +28,13 @@ export async function GetTitlesByFilters(data: {
         if (value === undefined || value === null || value === '') return
 
         if (Array.isArray(value)) {
+            console.log(key)
+            console.log(value)
             value.forEach(v => params.append(key, String(v)))
         } else {
             params.append(key, String(value))
         }
     })
     const query = params.toString()
-
     return await PerformFetch<title[]>({ url: `/title/search?${query}` })
 }
