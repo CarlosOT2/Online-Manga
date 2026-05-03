@@ -3,6 +3,7 @@ using back_end.Database.DbAccess.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using back_end.Shared.Core;
 using back_end.Models;
+using System.Diagnostics;
 
 namespace back_end.Database.DbAccess
 {
@@ -78,18 +79,31 @@ namespace back_end.Database.DbAccess
             string? name,
             string? author,
             string? artist,
+
             int[]? genresIds,
             int[]? themesIds,
             int[]? demographicIds,
             int[]? statusIds,
             int[]? contentRatingIds,
-            int? publicationYear
+            int? publicationYear,
+
+            int[]? excludeGenresIds,
+            int[]? excludeThemesIds
             )
         {
             try
             {
+                //? Variables
                 IQueryable<DTOs.Title> query = BuildQuery();
 
+                //? Verification
+                IEnumerable<int> conflictingGenres = genresIds?.Intersect(excludeGenresIds ?? []) ?? [];
+                IEnumerable<int> conflictingThemes = themesIds?.Intersect(excludeThemesIds ?? []) ?? [];
+
+                if (conflictingGenres.Any() || conflictingThemes.Any())
+                    return Result<List<DTOs.Title>>.Failure("Invalid filters: same id cannot be included and excluded simultaneously");
+
+                //# Include
                 //? Name
                 if (!string.IsNullOrWhiteSpace(name))
                     query = query.Where(t => EF.Functions.ILike(t.name, $"%{name}%"));
@@ -125,6 +139,13 @@ namespace back_end.Database.DbAccess
                 //? Publication Year
                 if (publicationYear.HasValue)
                     query = query.Where(t => t.publicationDate.Year == publicationYear.Value);
+
+                //# Exclude 
+                if (excludeGenresIds?.Length >= 1)
+                    query = query.Where(t => !excludeGenresIds.Any(id => t.genres.Contains(id)));
+
+                if (excludeThemesIds?.Length >= 1)
+                    query = query.Where(t => !excludeThemesIds.Any(id => t.themes.Contains(id)));
 
                 List<DTOs.Title> titles = await RunQuery(query);
                 return Result<List<DTOs.Title>>.Success(titles);

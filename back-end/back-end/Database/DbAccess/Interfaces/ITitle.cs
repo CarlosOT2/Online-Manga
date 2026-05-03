@@ -14,12 +14,16 @@ namespace back_end.Database.DbAccess.Interfaces
             string? name,
             string? author,
             string? artist,
+
             int[]? genresIds,
             int[]? themesIds,
             int[]? demographicIds,
             int[]? statusIds,
             int[]? contentRatingIds,
-            int? publicationYear
+            int? publicationYear,
+
+            int[]? excludeGenresIds,
+            int[]? excludeThemesIds
             );
     }
 }

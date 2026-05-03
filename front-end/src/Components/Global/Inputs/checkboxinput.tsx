@@ -28,7 +28,6 @@ interface checkboxinput {
     ariaLabel?: string
     /** aria-labelledby of the checkbox input */
     ariaLabelledBy?: string
-
 }
 
 export default function checkboxinput({

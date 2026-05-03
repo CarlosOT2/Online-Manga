@@ -48,24 +48,32 @@ namespace back_end.Controllers
             [FromQuery] string? name,
             [FromQuery] string? author,
             [FromQuery] string? artist,
+
             [FromQuery] int[]? genresIds,
             [FromQuery] int[]? themesIds,
             [FromQuery] int[]? demographicIds,
             [FromQuery] int[]? statusIds,
             [FromQuery] int[]? contentRatingIds,
-            [FromQuery] int? publicationYear
+            [FromQuery] int? publicationYear,
+
+            [FromQuery] int[]? excludeGenresIds,
+            [FromQuery] int[]? excludeThemesIds
             )
         {
             Result<List<DTOs.Title>> result = await _dbAccess.GetTitlesByFilters(
                 name,
                 author,
                 artist,
+
                 genresIds,
                 themesIds,
                 demographicIds,
                 statusIds,
                 contentRatingIds,
-                publicationYear
+                publicationYear,
+
+                excludeGenresIds,
+                excludeThemesIds
                 );
 
             if (result.IsFailure)

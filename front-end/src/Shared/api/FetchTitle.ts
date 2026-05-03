@@ -15,12 +15,16 @@ export async function GetTitlesByFilters(data: {
     name?: string,
     author?: string,
     artist?: string,
+
     genresIds?: number[] | string[],
     themesIds?: number[] | string[],
     statusIds?: number[] | string[],
     demographicIds?: number[] | string[],
     contentRatingIds?: number[] | string[],
     publicationYear?: number | string,
+
+    excludeGenresIds?: number[] | string[],
+    excludeThemesIds?: number[] | string[]
 }) {
 
     const params = new URLSearchParams()
@@ -28,8 +32,6 @@ export async function GetTitlesByFilters(data: {
         if (value === undefined || value === null || value === '') return
 
         if (Array.isArray(value)) {
-            console.log(key)
-            console.log(value)
             value.forEach(v => params.append(key, String(v)))
         } else {
             params.append(key, String(value))

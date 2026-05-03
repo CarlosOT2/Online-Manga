@@ -250,7 +250,6 @@ export default function Search() {
 
             genresIds: data.searchTags_Genres,
             themesIds: data.searchTags_Themes,
-
         })
 
         if (res) setData(res)

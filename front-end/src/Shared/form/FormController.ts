@@ -49,8 +49,6 @@ export function useFormController(config: config) {
         else {
             setData(prev => ({ ...prev, [name]: value }))
         }
-
-        console.log(data)
     }
     function changeValue(name: string, value: any) {
         setData(prev => ({ ...prev, [name]: value }))
@@ -63,8 +61,6 @@ export function useFormController(config: config) {
         event.preventDefault()
 
         await handleSubmit(InputsController.data)
-
-        
     }
     
     return { InputsController, SubmitController }
