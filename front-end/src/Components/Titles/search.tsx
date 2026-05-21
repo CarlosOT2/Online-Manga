@@ -69,6 +69,9 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
     const id = `label_${useId()}`
 
     const { showFilterItem, setShowFilterItem } = state
+
+    // Default suffix used to access exclusion InputsData
+    const excludeTextString = 'exclude'
     const InputName = `search${label.replace(/\s+/g, '').replace(/^./, c => c.toUpperCase())}`
 
     return (
@@ -94,22 +97,26 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
                     <Text tag='span' no_select={true} not_exceed_X={true}>
                         {
                             (() => {
-                                const value = InputsController.data[InputName];
+
 
                                 // MultiDropDown
-                                if (Array.isArray(value) && value.length > 0 && Array.isArray(options)) {
-                                    return value
+                                const mddValue = InputsController.data[InputName];
+                                if (Array.isArray(mddValue) && mddValue.length > 0 && Array.isArray(options)) {
+                                    return mddValue
                                         .map(v => options.find((obj: staticData) => obj.id === Number(v))?.name)
                                         .join(", ");
                                 }
 
                                 // SelectText & SelectNumber
-                                if ((typeof value === "string" || typeof value === "number") && !options) {
-                                    return value.toString() || "None";
+                                const slctValue = InputsController.data[InputName];
+                                if ((typeof slctValue === "string" || typeof slctValue === "number") && !options) {
+                                    return slctValue.toString() || "None";
                                 }
 
                                 // Faceted
+
                                 if (isPlainObject(options) && Object.values(options).every(Array.isArray)) {
+
                                     const optionsKeys = Object.keys(options);
                                     const staticKeys = getAllStaticKeys()
 
@@ -118,11 +125,20 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
 
                                         if (!staticKeys.includes(frmtdKey)) {
                                             console.error(`Invalid key "${key}". Cannot format value because it does not exist in data returned by GetAllStatic().`)
-                                            return null
+                                            return []
                                         }
 
                                         const keyValues = InputsController.data[`${InputName}_${key}`] ?? []
-                                        return keyValues.map((value: string) => staticMapper(frmtdKey, Number(value)))
+                                        const keyExcludeValues = InputsController.data[`${InputName}_${key}_${excludeTextString}`] ?? []
+
+                                        return [
+                                            ...keyValues.map((value: string) =>
+                                                staticMapper(frmtdKey, Number(value))
+                                            ),
+                                            ...keyExcludeValues.map((value: string) =>
+                                                `NOT ${staticMapper(frmtdKey, Number(value))}`
+                                            )
+                                        ]
                                     })
 
                                     if (values.length > 0) return values.join(", ")
@@ -153,16 +169,57 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
                                         </Text>
 
                                         <ul>
-                                            {value.map(option => (
-                                                <li key={option.name}>
-                                                    <CheckBoxInput
-                                                        value={option.id}
-                                                        label={option.name}
-                                                        name={`${InputName}_${key}`}
-                                                        InputsController={InputsController}
-                                                    />
-                                                </li>
-                                            ))}
+                                            {value.map(function (option) {
+                                                const dataIncludeKey = `${InputName}_${key}`
+                                                const dataExcludeKey = `${InputName}_${key}_${excludeTextString}`
+
+                                                const isInclude = (InputsController.data[dataIncludeKey] ?? []).includes(String(option.id))
+                                                const isExclude = (InputsController.data[dataExcludeKey] ?? []).includes(String(option.id))
+
+                                                return (
+                                                    <li key={option.name}>
+                                                        <CheckBoxInput
+                                                            value={option.id}
+                                                            label={option.name}
+                                                            disableOnChange={true}
+                                                            classNameLabel={
+                                                                `
+                                                                search__filters-item__options--faceted-label
+                                                                ${isExclude ?
+                                                                    `search__filters-item__options--faceted-label-exclude`
+                                                                    : isInclude ?
+                                                                        `search__filters-item__options--faceted-label-include`
+                                                                        : ''
+                                                                }
+                                                                `
+                                                            }
+                                                            name={`${InputName}_${key}`}
+                                                            onClick={(e) => {
+                                                                const filterById = (list: string[], id: number) =>
+                                                                    (list ?? []).filter((item) => Number(item) !== id)
+
+                                                                const id = String(option.id)
+                                                                const includes = InputsController.data[dataIncludeKey] ?? []
+                                                                const excludes = InputsController.data[dataExcludeKey] ?? []
+
+                                                                if (isInclude) {
+                                                                    // include → exclude
+                                                                    InputsController.changeValue(dataIncludeKey, filterById(includes, option.id))
+                                                                    InputsController.changeValue(dataExcludeKey, [...excludes, id])
+                                                                } else if (isExclude) {
+                                                                    // exclude → none
+                                                                    InputsController.changeValue(dataIncludeKey, filterById(includes, option.id))
+                                                                    InputsController.changeValue(dataExcludeKey, filterById(excludes, option.id))
+                                                                } else {
+                                                                    // none → include
+                                                                    InputsController.changeValue(dataIncludeKey, [...includes, id])
+                                                                }
+                                                            }}
+                                                            InputsController={InputsController}
+                                                        />
+                                                    </li>
+                                                )
+                                            })}
                                         </ul>
                                     </section>
                                 ))
@@ -236,7 +293,10 @@ export default function Search() {
         searchPublicationYear: string,
 
         searchTags_Genres: string[],
-        searchTags_Themes: string[]
+        searchTags_Themes: string[],
+
+        searchTags_Genres_exclude: string[],
+        searchTags_Themes_exclude: string[]
     }) {
         const res = await GetTitlesByFilters({
             name: data.searchName,
@@ -250,6 +310,9 @@ export default function Search() {
 
             genresIds: data.searchTags_Genres,
             themesIds: data.searchTags_Themes,
+
+            excludeGenresIds: data.searchTags_Genres_exclude,
+            excludeThemesIds: data.searchTags_Themes_exclude
         })
 
         if (res) setData(res)

@@ -1,0 +1,370 @@
+diff --git a/back-end/back-end/Program.cs b/back-end/back-end/Program.cs
+index 9362a4a..729c096 100644
+--- a/back-end/back-end/Program.cs
++++ b/back-end/back-end/Program.cs
+@@ -33,7 +33,6 @@ namespace back_end
+             builder.Services.AddSingleton<CacheHandler>();
+             builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("redis:6379"));
+ 
+-
+             //? Cors
+             builder.Services.AddCors(options =>
+             {
+diff --git a/front-end/src/Components/Global/Inputs/checkboxinput.tsx b/front-end/src/Components/Global/Inputs/checkboxinput.tsx
+index 8ba57ad..217db0f 100644
+--- a/front-end/src/Components/Global/Inputs/checkboxinput.tsx
++++ b/front-end/src/Components/Global/Inputs/checkboxinput.tsx
+@@ -21,7 +21,9 @@ interface checkboxinput {
+     /** additional CSS classes to apply on input */
+     classNameInput?: string
+     /** onClick of the checkbox input */
+-    onClick?: any
++    onClick?: (e: React.MouseEvent<HTMLInputElement, MouseEvent>) => void
++    /** Disables value changes from onChange events; the value must be controlled manually (only use when absolutely necessary) */
++    disableOnChange?: boolean
+     /** apply default style */
+     defaultStyle?: boolean
+     /** aria-label of the checkbox input */
+@@ -40,8 +42,9 @@ export default function checkboxinput({
+     classNameInput = '',
+ 
+     onClick,
++    disableOnChange = false,
+     ariaLabel = undefined,
+-    ariaLabelledBy = undefined
++    ariaLabelledBy = undefined,
+ }: checkboxinput) {
+ 
+     const frmtd_value = String(value)
+@@ -59,16 +62,22 @@ export default function checkboxinput({
+ 
+     return (
+         <>
+-            <label className={FilterClasses(frmtd_classNameLabel)}>
++            <label
++                className={FilterClasses(frmtd_classNameLabel)}
++            >
+                 <input
+                     type="checkbox"
+                     name={name}
+-                    onClick={onClick}
++                    onClick={(e) => {
++                        if (onClick) onClick(e)
++                    }}
+                     value={frmtd_value}
+                     className={FilterClasses(frmtd_classNameInput)}
+                     aria-label={ariaLabel}
+                     aria-labelledby={ariaLabelledBy}
+-                    onChange={InputsController.onChange}
++                    onChange={(e) => {
++                        if (!disableOnChange) InputsController.onChange(e)
++                    }}
+                     checked={checked}
+                 />
+                 <Text
+diff --git a/front-end/src/Components/Titles/search.scss b/front-end/src/Components/Titles/search.scss
+index 2be4334..e6c71e8 100644
+--- a/front-end/src/Components/Titles/search.scss
++++ b/front-end/src/Components/Titles/search.scss
+@@ -102,7 +102,7 @@
+             height: 50%;
+ 
+             padding-right: 6px;
+-            
++
+             transition: filter transition-time.$transition-time ease;
+ 
+             &:focus {
+@@ -160,6 +160,36 @@
+                 &--faceted {
+                     width: 250%;
+ 
++
++                    &-label {
++                        position: relative;
++
++                        padding: 2px 4px;
++
++                        border: 1px solid var(--color2);
++                        border-radius: border-radius.$border-radius;
++
++                        &-include {
++                            border: 1px solid var(--true);
++                            background-color: var(--true-transparent);
++
++                            span {
++                                color: var(--true);
++                            }
++                        }
++
++                        &-exclude {
++                            border: 1px solid var(--false);
++                            background-color: var(--false-transparent);
++
++                            span {
++                                color: var(--false);
++                            }
++                        }
++                    }
++
++
++
+                     section {
+                         ul {
+                             display: flex;
+@@ -175,25 +205,6 @@
+ 
+                                 width: fit-content;
+                                 height: fit-content;
+-
+-                                label {
+-                                    position: relative;
+-
+-                                    padding: 2px 4px;
+-
+-                                    border: 1px solid var(--color2);
+-                                    border-radius: border-radius.$border-radius;
+-
+-                                    &:has(input:checked) {
+-                                        border: 1px solid var(--true);
+-                                        background-color: var(--true-transparent);
+-
+-                                        span {
+-                                            color: var(--true);
+-                                        }
+-                                    }
+-                                }
+-
+                             }
+                         }
+                     }
+diff --git a/front-end/src/Components/Titles/search.tsx b/front-end/src/Components/Titles/search.tsx
+index dd32d44..4924408 100644
+--- a/front-end/src/Components/Titles/search.tsx
++++ b/front-end/src/Components/Titles/search.tsx
+@@ -69,6 +69,9 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
+     const id = `label_${useId()}`
+ 
+     const { showFilterItem, setShowFilterItem } = state
++
++    // Default suffix used to access exclusion InputsData
++    const excludeTextString = 'exclude'
+     const InputName = `search${label.replace(/\s+/g, '').replace(/^./, c => c.toUpperCase())}`
+ 
+     return (
+@@ -94,22 +97,26 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
+                     <Text tag='span' no_select={true} not_exceed_X={true}>
+                         {
+                             (() => {
+-                                const value = InputsController.data[InputName];
++
+ 
+                                 // MultiDropDown
+-                                if (Array.isArray(value) && value.length > 0 && Array.isArray(options)) {
+-                                    return value
++                                const mddValue = InputsController.data[InputName];
++                                if (Array.isArray(mddValue) && mddValue.length > 0 && Array.isArray(options)) {
++                                    return mddValue
+                                         .map(v => options.find((obj: staticData) => obj.id === Number(v))?.name)
+                                         .join(", ");
+                                 }
+ 
+                                 // SelectText & SelectNumber
+-                                if ((typeof value === "string" || typeof value === "number") && !options) {
+-                                    return value.toString() || "None";
++                                const slctValue = InputsController.data[InputName];
++                                if ((typeof slctValue === "string" || typeof slctValue === "number") && !options) {
++                                    return slctValue.toString() || "None";
+                                 }
+ 
+                                 // Faceted
++
+                                 if (isPlainObject(options) && Object.values(options).every(Array.isArray)) {
++
+                                     const optionsKeys = Object.keys(options);
+                                     const staticKeys = getAllStaticKeys()
+ 
+@@ -118,11 +125,20 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
+ 
+                                         if (!staticKeys.includes(frmtdKey)) {
+                                             console.error(`Invalid key "${key}". Cannot format value because it does not exist in data returned by GetAllStatic().`)
+-                                            return null
++                                            return []
+                                         }
+ 
+                                         const keyValues = InputsController.data[`${InputName}_${key}`] ?? []
+-                                        return keyValues.map((value: string) => staticMapper(frmtdKey, Number(value)))
++                                        const keyExcludeValues = InputsController.data[`${InputName}_${key}_${excludeTextString}`] ?? []
++
++                                        return [
++                                            ...keyValues.map((value: string) =>
++                                                staticMapper(frmtdKey, Number(value))
++                                            ),
++                                            ...keyExcludeValues.map((value: string) =>
++                                                `NOT ${staticMapper(frmtdKey, Number(value))}`
++                                            )
++                                        ]
+                                     })
+ 
+                                     if (values.length > 0) return values.join(", ")
+@@ -153,16 +169,57 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
+                                         </Text>
+ 
+                                         <ul>
+-                                            {value.map(option => (
+-                                                <li key={option.name}>
+-                                                    <CheckBoxInput
+-                                                        value={option.id}
+-                                                        label={option.name}
+-                                                        name={`${InputName}_${key}`}
+-                                                        InputsController={InputsController}
+-                                                    />
+-                                                </li>
+-                                            ))}
++                                            {value.map(function (option) {
++                                                const dataIncludeKey = `${InputName}_${key}`
++                                                const dataExcludeKey = `${InputName}_${key}_${excludeTextString}`
++
++                                                const isInclude = (InputsController.data[dataIncludeKey] ?? []).includes(String(option.id))
++                                                const isExclude = (InputsController.data[dataExcludeKey] ?? []).includes(String(option.id))
++
++                                                return (
++                                                    <li key={option.name}>
++                                                        <CheckBoxInput
++                                                            value={option.id}
++                                                            label={option.name}
++                                                            disableOnChange={true}
++                                                            classNameLabel={
++                                                                `
++                                                                search__filters-item__options--faceted-label
++                                                                ${isExclude ?
++                                                                    `search__filters-item__options--faceted-label-exclude`
++                                                                    : isInclude ?
++                                                                        `search__filters-item__options--faceted-label-include`
++                                                                        : ''
++                                                                }
++                                                                `
++                                                            }
++                                                            name={`${InputName}_${key}`}
++                                                            onClick={(e) => {
++                                                                const filterById = (list: string[], id: number) =>
++                                                                    (list ?? []).filter((item) => Number(item) !== id)
++
++                                                                const id = String(option.id)
++                                                                const includes = InputsController.data[dataIncludeKey] ?? []
++                                                                const excludes = InputsController.data[dataExcludeKey] ?? []
++
++                                                                if (isInclude) {
++                                                                    // include → exclude
++                                                                    InputsController.changeValue(dataIncludeKey, filterById(includes, option.id))
++                                                                    InputsController.changeValue(dataExcludeKey, [...excludes, id])
++                                                                } else if (isExclude) {
++                                                                    // exclude → none
++                                                                    InputsController.changeValue(dataIncludeKey, filterById(includes, option.id))
++                                                                    InputsController.changeValue(dataExcludeKey, filterById(excludes, option.id))
++                                                                } else {
++                                                                    // none → include
++                                                                    InputsController.changeValue(dataIncludeKey, [...includes, id])
++                                                                }
++                                                            }}
++                                                            InputsController={InputsController}
++                                                        />
++                                                    </li>
++                                                )
++                                            })}
+                                         </ul>
+                                     </section>
+                                 ))
+@@ -236,7 +293,10 @@ export default function Search() {
+         searchPublicationYear: string,
+ 
+         searchTags_Genres: string[],
+-        searchTags_Themes: string[]
++        searchTags_Themes: string[],
++
++        searchTags_Genres_exclude: string[],
++        searchTags_Themes_exclude: string[]
+     }) {
+         const res = await GetTitlesByFilters({
+             name: data.searchName,
+@@ -250,6 +310,9 @@ export default function Search() {
+ 
+             genresIds: data.searchTags_Genres,
+             themesIds: data.searchTags_Themes,
++
++            excludeGenresIds: data.searchTags_Genres_exclude,
++            excludeThemesIds: data.searchTags_Themes_exclude
+         })
+ 
+         if (res) setData(res)
+diff --git a/front-end/src/Shared/form/FormController.ts b/front-end/src/Shared/form/FormController.ts
+index 3302a4f..7c2f308 100644
+--- a/front-end/src/Shared/form/FormController.ts
++++ b/front-end/src/Shared/form/FormController.ts
+@@ -1,7 +1,7 @@
+ //# Types //
+ import type { InputsController, SubmitController } from '../types/FormController'
+ //# Libs //
+-import { useState } from "react";
++import { useState, useEffect } from "react";
+ 
+ type config = {
+     handleSubmit: (...args: any[]) => Promise<any>;
+@@ -25,16 +25,21 @@ export function useFormController(config: config) {
+ 
+     const [data, setData] = useState<{ [key: string]: any }>({})
+ 
++    useEffect(() => {
++        console.log(data)
++    }, [data])
++
+     const InputsController: InputsController = {
+         onChange: onChange,
+         changeValue: changeValue,
+         data: data,
+     }
+-    
++
+     function onChange(event: React.ChangeEvent<HTMLInputElement>) {
+         const { name, value, type } = event.target
+ 
+         if (type == 'checkbox') {
++            console.log('onChange')
+             setData(prev => {
+                 const current = (prev[name] as any[]) || [];
+ 
+@@ -50,10 +55,12 @@ export function useFormController(config: config) {
+             setData(prev => ({ ...prev, [name]: value }))
+         }
+     }
++
+     function changeValue(name: string, value: any) {
+         setData(prev => ({ ...prev, [name]: value }))
+     }
+ 
++
+     const SubmitController: SubmitController = {
+         onSubmit: onSubmit,
+     }
+@@ -62,6 +69,6 @@ export function useFormController(config: config) {
+ 
+         await handleSubmit(InputsController.data)
+     }
+-    
++
+     return { InputsController, SubmitController }
+ }
+\ No newline at end of file
+diff --git a/front-end/src/Shared/styles/_themes.scss b/front-end/src/Shared/styles/_themes.scss
+index 6d17869..9a0eb93 100644
+--- a/front-end/src/Shared/styles/_themes.scss
++++ b/front-end/src/Shared/styles/_themes.scss
+@@ -18,4 +18,5 @@ $light-theme: (
+     true-transparent: rgba(0, 175, 0, 0.2),
+ 
+     false: rgb(220, 0, 0),
+-)
+\ No newline at end of file
++    false-transparent: rgba(220, 0, 0, 0.2),
++    )
+\ No newline at end of file

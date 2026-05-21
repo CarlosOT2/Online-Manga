@@ -33,7 +33,6 @@ namespace back_end
             builder.Services.AddSingleton<CacheHandler>();
             builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("redis:6379"));
 
-
             //? Cors
             builder.Services.AddCors(options =>
             {

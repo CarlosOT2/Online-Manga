@@ -30,11 +30,12 @@ export function useFormController(config: config) {
         changeValue: changeValue,
         data: data,
     }
-    
+
     function onChange(event: React.ChangeEvent<HTMLInputElement>) {
         const { name, value, type } = event.target
 
         if (type == 'checkbox') {
+            console.log('onChange')
             setData(prev => {
                 const current = (prev[name] as any[]) || [];
 
@@ -50,9 +51,11 @@ export function useFormController(config: config) {
             setData(prev => ({ ...prev, [name]: value }))
         }
     }
+
     function changeValue(name: string, value: any) {
         setData(prev => ({ ...prev, [name]: value }))
     }
+
 
     const SubmitController: SubmitController = {
         onSubmit: onSubmit,
@@ -62,6 +65,6 @@ export function useFormController(config: config) {
 
         await handleSubmit(InputsController.data)
     }
-    
+
     return { InputsController, SubmitController }
 }

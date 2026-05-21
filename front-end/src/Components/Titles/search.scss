@@ -102,7 +102,7 @@
             height: 50%;
 
             padding-right: 6px;
-            
+
             transition: filter transition-time.$transition-time ease;
 
             &:focus {
@@ -160,6 +160,36 @@
                 &--faceted {
                     width: 250%;
 
+
+                    &-label {
+                        position: relative;
+
+                        padding: 2px 4px;
+
+                        border: 1px solid var(--color2);
+                        border-radius: border-radius.$border-radius;
+
+                        &-include {
+                            border: 1px solid var(--true);
+                            background-color: var(--true-transparent);
+
+                            span {
+                                color: var(--true);
+                            }
+                        }
+
+                        &-exclude {
+                            border: 1px solid var(--false);
+                            background-color: var(--false-transparent);
+
+                            span {
+                                color: var(--false);
+                            }
+                        }
+                    }
+
+
+
                     section {
                         ul {
                             display: flex;
@@ -175,25 +205,6 @@
 
                                 width: fit-content;
                                 height: fit-content;
-
-                                label {
-                                    position: relative;
-
-                                    padding: 2px 4px;
-
-                                    border: 1px solid var(--color2);
-                                    border-radius: border-radius.$border-radius;
-
-                                    &:has(input:checked) {
-                                        border: 1px solid var(--true);
-                                        background-color: var(--true-transparent);
-
-                                        span {
-                                            color: var(--true);
-                                        }
-                                    }
-                                }
-
                             }
                         }
                     }

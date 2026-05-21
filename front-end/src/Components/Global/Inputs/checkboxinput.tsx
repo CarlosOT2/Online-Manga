@@ -21,7 +21,9 @@ interface checkboxinput {
     /** additional CSS classes to apply on input */
     classNameInput?: string
     /** onClick of the checkbox input */
-    onClick?: any
+    onClick?: (e: React.MouseEvent<HTMLInputElement, MouseEvent>) => void
+    /** Disables value changes from onChange events; the value must be controlled manually (only use when absolutely necessary) */
+    disableOnChange?: boolean
     /** apply default style */
     defaultStyle?: boolean
     /** aria-label of the checkbox input */
@@ -40,8 +42,9 @@ export default function checkboxinput({
     classNameInput = '',
 
     onClick,
+    disableOnChange = false,
     ariaLabel = undefined,
-    ariaLabelledBy = undefined
+    ariaLabelledBy = undefined,
 }: checkboxinput) {
 
     const frmtd_value = String(value)
@@ -59,16 +62,22 @@ export default function checkboxinput({
 
     return (
         <>
-            <label className={FilterClasses(frmtd_classNameLabel)}>
+            <label
+                className={FilterClasses(frmtd_classNameLabel)}
+            >
                 <input
                     type="checkbox"
                     name={name}
-                    onClick={onClick}
+                    onClick={(e) => {
+                        if (onClick) onClick(e)
+                    }}
                     value={frmtd_value}
                     className={FilterClasses(frmtd_classNameInput)}
                     aria-label={ariaLabel}
                     aria-labelledby={ariaLabelledBy}
-                    onChange={InputsController.onChange}
+                    onChange={(e) => {
+                        if (!disableOnChange) InputsController.onChange(e)
+                    }}
                     checked={checked}
                 />
                 <Text
