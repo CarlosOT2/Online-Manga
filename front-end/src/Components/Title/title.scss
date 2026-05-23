@@ -5,7 +5,7 @@
 @use '../../Shared/styles/default/layout' as layout;
 @use '../../Shared/styles/default/header' as header;
 
-$text-shadow: 0px 0px 15px var(--text-color);
+$text-shadow: 0px 0px 10px var(--text-color);
 
 .title {
     display: flex;
@@ -40,7 +40,17 @@ $text-shadow: 0px 0px 15px var(--text-color);
         @include no-select.no-select;
     }
 
-    &__fast-info {
+    &__img {
+        border-radius: border-radius.$border-radius;
+        width: 200px;
+        height: 100%;
+
+        box-shadow: 0px 0px 10px var(--box-shadow);
+
+        @include no-select.no-select;
+    }
+
+    &__header {
         display: flex;
         align-items: center;
 
@@ -50,59 +60,69 @@ $text-shadow: 0px 0px 15px var(--text-color);
 
         gap: 20px;
 
-        &-container {
+        &__content {
             display: flex;
             flex-direction: column;
             width: 75%;
-        }
-
-        &-img {
-            border-radius: border-radius.$border-radius;
-            width: 200px;
             height: 100%;
-
-            @include no-select.no-select;
         }
 
-        &-buttons {
+
+
+        &__meta {
+            display: flex;
+            flex-direction: column;
+
+            height: 85%;
+
+            &-name {
+                margin: 0;
+
+                color: var(--color1);
+                text-shadow: $text-shadow;
+                font-size: text.$font-size1;
+            }
+
+            &-author {
+                margin: 0;
+
+                display: flex;
+                height: fit-content;
+
+                color: var(--color4);
+                text-shadow: $text-shadow;
+                font-size: text.$font-size5;
+
+                margin-top: 8px;
+            }
+        }
+
+        &__buttons {
             display: flex;
             width: 100%;
+            height: 15%;
             gap: 17px;
-        }
-
-        &-name {
-            color: var(--color1);
-            text-shadow: $text-shadow;
-            font-size: text.$font-size1;
-
-            height: 100px;
-
-            margin-bottom: 85px;
-        }
-
-        &-author {
-            color: var(--color4);
-            text-shadow: $text-shadow;
-            font-size: text.$font-size5;
-
-            margin-bottom: 15px;
         }
     }
 
-    &__info {
+    &__content {
         display: flex;
         align-items: center;
         flex-direction: column;
 
-        height: 1000px;
+        height: fit-content;
         width: layout.$layout-default-width;
         margin-top: 25px;
         margin-bottom: 25px;
 
-        background-color: color-mix(in srgb, var(--color1) 96%, transparent 4%);
+        background:
+            linear-gradient(to bottom,
+                var(--color1),
+                color-mix(in srgb, var(--color1) 80%, transparent 20%));
+
         border-radius: border-radius.$border-radius;
 
-        &-synopsis {
+        &__synopsis {
             display: flex;
             justify-content: center;
 
@@ -112,9 +132,10 @@ $text-shadow: 0px 0px 15px var(--text-color);
 
             margin-top: 25px;
 
+            text-align: justify;
         }
 
-        &-line {
+        &__line {
             display: flex;
             height: 2px;
             width: 95%;
@@ -127,7 +148,7 @@ $text-shadow: 0px 0px 15px var(--text-color);
             border: none;
         }
 
-        &-container {
+        &__container {
             display: flex;
             justify-content: space-between;
 
@@ -135,9 +156,11 @@ $text-shadow: 0px 0px 15px var(--text-color);
             height: 80%;
 
             margin-bottom: 25px;
+
+            gap: 5%;
         }
 
-        &-meta {
+        &__meta {
             list-style: none;
             padding: 0;
             margin: 0;
@@ -162,7 +185,7 @@ $text-shadow: 0px 0px 15px var(--text-color);
                 font-weight: bold;
             }
 
-            &-wrapper {
+            &-list {
                 list-style: none;
                 padding: 0;
                 margin: 0;
@@ -184,47 +207,58 @@ $text-shadow: 0px 0px 15px var(--text-color);
                 height: 15px;
 
                 width: fit-content;
-                min-width: 60px;
+                min-width: 55px;
 
-                padding: 4px;
+                padding: 5px 8px;
 
                 border-radius: border-radius.$border-radius;
                 background-color: var(--color3);
 
-                text-align: center;
-                font-size: text.$font-size6;
-                color: var(--color1);
+
+
+                &-text {
+                    text-align: center;
+                    font-size: text.$font-size6;
+                    color: var(--color1);
+                }
             }
         }
 
-        &-chapters {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        &__chapters {
+            &-list {
+                list-style: none;
+                padding: 0;
+                margin: 0;
 
-            display: flex;
-            flex-direction: column;
+                display: flex;
+                flex-direction: column;
 
-            width: 60%;
-            height: 100%;
+                width: 60%;
+                height: 100%;
 
-            gap: 25px;
+                gap: 25px;
 
-            &-group {
-                box-shadow: 0px 0px 3px var(--color2);
-                width: 100%;
-                height: 10%;
+                &-item {
+                    display: flex;
+                    justify-content: flex-start;
+                    align-items: center;
 
-                border-radius: border-radius.$border-radius;
-                background-color: var(--background-color);
+                    width: 100%;
+                    height: 50px;
+
+                    border-radius: border-radius.$border-radius;
+                    background-color: var(--background-color);
+
+                    box-shadow: 0px 0px 3px var(--color2);
+                }
 
                 &-txt {
                     font-size: text.$font-size6;
                     font-weight: bold;
-                    margin-top: 5px;
                     margin-left: 10px;
                 }
             }
+
         }
     }
 
@@ -234,10 +268,10 @@ $text-shadow: 0px 0px 15px var(--text-color);
         justify-content: center;
 
         gap: 7px;
-        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+        box-shadow: 0px 0px 10px var(--box-shadow);
 
         width: 17.5%;
-        height: 50px;
+        height: 100%;
 
         &-icon {
             color: var(--color1);

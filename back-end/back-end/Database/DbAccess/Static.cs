@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Runtime;
-using back_end.Data;
+﻿using back_end.Data;
 using back_end.Database.DbAccess.Interfaces;
 using back_end.DTOs;
 using back_end.Shared.Cache;
+using back_end.Shared.Settings;
 using back_end.Shared.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;

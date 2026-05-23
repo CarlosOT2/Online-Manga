@@ -4,7 +4,7 @@ import Link from '../link'
 import Img from '../img'
 import Button from '../Inputs/button'
 //# Libs //
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 //# Utils //
 import { staticMapper } from '../../../Shared/utils/staticHandler'
 //# Types //
@@ -18,6 +18,7 @@ import { FaChevronRight } from "react-icons/fa"
 
 export default function FeaturedTitles({ data }: { data: title[] }) {
     const [titleIndex, setTitleIndex] = useState(0)
+    const [isPaused, setIsPaused] = useState(false)
 
     function handleTitleSwitch(direction: number) {
         let newIndex = titleIndex + direction;
@@ -30,8 +31,24 @@ export default function FeaturedTitles({ data }: { data: title[] }) {
         setTitleIndex(newIndex)
     }
 
+    useEffect(() => {
+        if (isPaused) return
+
+        const interval = setInterval(() => {
+            setTitleIndex((prev) =>
+                prev >= data.length - 1 ? 0 : prev + 1
+            )
+        }, 7500)
+
+        return () => clearInterval(interval)
+    }, [isPaused, data.length])
+
     return (
-        <section className='featuredtitles' >
+        <section
+            className='featuredtitles'
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+        >
             <ul className='featuredtitles__track' style={{ transform: `translateX(-${titleIndex * 100}%)` }}>
                 {
                     data.map((title: title, i) => {

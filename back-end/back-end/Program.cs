@@ -1,6 +1,7 @@
 
 using back_end.Data;
 using back_end.Shared.Cache;
+using back_end.Shared.Settings;
 using Microsoft.EntityFrameworkCore;
 using StackExchange.Redis;
 
@@ -28,7 +29,9 @@ namespace back_end
             //? Dependency Injection
             builder.Services.AddScoped<Database.DbAccess.Interfaces.ITitle, Database.DbAccess.Title>();
             builder.Services.AddScoped<Database.DbAccess.Interfaces.IStatic, Database.DbAccess.Static>();
-            builder.Services.Configure<CacheSettings>( builder.Configuration.GetSection("CacheSettings"));
+
+            builder.Services.Configure<CacheSettings>(builder.Configuration.GetSection("CacheSettings"));
+            builder.Services.Configure<ValidationSettings>(builder.Configuration.GetSection("Database:Tables:Validation"));
 
             builder.Services.AddSingleton<CacheHandler>();
             builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("redis:6379"));

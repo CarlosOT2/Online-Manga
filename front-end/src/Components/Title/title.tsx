@@ -24,7 +24,7 @@ import { LuUpload } from "react-icons/lu"
 
 function Buttons() {
     return (
-        <div className='title__fast-info-buttons' role='group'>
+        <section className='title__header__buttons' role='group'>
             <Button className='title__button' icon={<FaStar className='title__button-icon' />}>
                 <Text className='title__button-txt' tag='span' no_select={true}>
                     Favorite
@@ -45,13 +45,13 @@ function Buttons() {
                     Upload
                 </Text>
             </Button>
-        </div>
+        </section>
     )
 }
 
 function SectionMeta({ data }: { data: title | undefined }) {
     if (!data) {
-        console.warn("Warn: Failed to load section meta info data")
+        console.warn("Warn: Failed to load section meta content data")
         return
     }
 
@@ -94,16 +94,19 @@ function SectionMeta({ data }: { data: title | undefined }) {
             })
 
             return (
-                <li className="title__info-meta-group" key={`meta_${i}`}>
-                    <Text tag="h2" className="title__info-meta-label">
+                <li className="title__content__meta-group" key={`meta_${i}`}>
+                    <Text tag="h2" className="title__content__meta-label">
                         {name}
                     </Text>
-                    <ul className="title__info-meta-wrapper">
+                    <ul className="title__content__meta-list">
                         {
                             formattedData.map((data, data_i) => (
-                                <Text key={`data_${data_i}`} tag="li" className="title__info-meta-item">
-                                    {data}
-                                </Text>
+                                <li key={`data_${data_i}`} className='title__content__meta-item'>
+                                    <Text tag="span" className='title__content__meta-item-text'>
+                                        {data}
+                                    </Text>
+                                </li>
+
                             ))
                         }
                     </ul>
@@ -113,7 +116,7 @@ function SectionMeta({ data }: { data: title | undefined }) {
     }
 
     return (
-        <ul className={'title__info-meta'}>
+        <ul className={'title__content__meta'}>
             <Groups config={config} />
         </ul >
     )
@@ -123,8 +126,8 @@ function SectionChapters() {
     function TemplateChapter() {
         return (
             <>
-                <li className={'title__info-chapters-group'}>
-                    <Text tag='span' className='title__info-chapters-group-txt'>
+                <li className={'title__content__chapters-list-item'}>
+                    <Text tag='span' className='title__content__chapters-list-txt'>
                         Chapter 1
                     </Text>
                 </li>
@@ -132,7 +135,7 @@ function SectionChapters() {
         )
     }
     return (
-        <ul className={'title__info-chapters'}>
+        <ul className={'title__content__chapters-list'}>
             <TemplateChapter />
             <TemplateChapter />
             <TemplateChapter />
@@ -173,26 +176,29 @@ export default function Title() {
             </Text >
             <div className='title__container'>
                 <Img className={'title__bg-img'} src={'/manga-teste.jpg'} ariaHidden={true} />
-                <header className='title__fast-info'>
-                    <Img className={'title__fast-info-img'} src={'/manga-teste.jpg'} alt={`Cover of ${data?.name}`} />
-                    <div className={'title__fast-info-container'}>
-                        <Text className={'title__fast-info-name'} tag='h1' title={true}>
-                            {data?.name}
-                        </Text>
-                        <Text className={'title__fast-info-author'} tag='p'>
-                            {data?.authors.join(", ")}
-                        </Text>
+                <header className='title__header'>
+                    <Img className={'title__img'} src={'/manga-teste.jpg'} alt={`Cover of ${data?.name}`} />
+
+                    <section className={'title__header__content'}>
+                        <section className='title__header__meta'>
+                            <Text className={'title__header__meta-name'} tag='h1' title={true}>
+                                {data?.name}
+                            </Text>
+                            <Text className={'title__header__meta-author'} tag='p'>
+                                {data?.authors.join(", ")}
+                            </Text>
+                        </section>
                         <Buttons />
-                    </div>
+                    </section>
                 </header>
-                <article className={'title__info'}>
-                    <section className={'title__info-synopsis'}>
+                <article className={'title__content'}>
+                    <section className={'title__content__synopsis'}>
                         <Text split_paragraph={'.'} tag='p'>
                             {data?.synopsis}
                         </Text>
                     </section>
-                    <hr className='title__info-line' />
-                    <section className={'title__info-container'}>
+                    <hr className='title__content__line' />
+                    <section className={'title__content__container'}>
                         <SectionMeta data={data} />
                         <SectionChapters />
                     </section>
