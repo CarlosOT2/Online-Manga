@@ -23,7 +23,7 @@ namespace back_end.Database.DbAccess
             {
                 Result<object> DbSetResult = _context.GetDbSet(DbSetName);
 
-                if(DbSetResult.IsFailure)
+                if (DbSetResult.IsFailure)
                     throw new InvalidOperationException(
                         "'DbSetResult' returned IsFailure during seed static operation."
                     );
@@ -202,6 +202,23 @@ namespace back_end.Database.DbAccess
                             int randomId = (int)idProp.GetValue(randomValue)!;
                             prop.SetValue(item, randomId);
                         }
+                        else if (type == typeof(decimal))
+                        {
+                            Random random = Random.Shared;
+
+                            decimal value = (random.NextDouble() < 0.7 ? 0m : random.Next(1, 10) / 10m) + i;
+
+                            prop.SetValue(item, i + value);
+                        }
+                        else if (type == typeof(bool))
+                        {
+                            // Random Boolean using the condition
+                            prop.SetValue(item, Random.Shared.Next(2) == 0);
+                        }
+                        else if (type == typeof(int))
+                        {
+                            prop.SetValue(item, Random.Shared.Next(1, 10001));
+                        }
                         else
                         {
                             throw new InvalidOperationException($"Unable to handle with type {type}");
@@ -227,16 +244,16 @@ namespace back_end.Database.DbAccess
                     );
 
                 if (DbSetResult.Value == null)
-                        throw new ArgumentException($"Could not find DbSet from the table called '{name}'");
+                    throw new ArgumentException($"Could not find DbSet from the table called '{name}'");
 
-                    Type GenericType = DbSetResult.Value.GetType().GenericTypeArguments[0];
+                Type GenericType = DbSetResult.Value.GetType().GenericTypeArguments[0];
 
-                    MethodInfo ExecuteDeleteAsync = typeof(EntityFrameworkQueryableExtensions)
-                    .GetMethods()
-                    .First(m => m.Name == "ExecuteDeleteAsync")
-                    .MakeGenericMethod(GenericType);
+                MethodInfo ExecuteDeleteAsync = typeof(EntityFrameworkQueryableExtensions)
+                .GetMethods()
+                .First(m => m.Name == "ExecuteDeleteAsync")
+                .MakeGenericMethod(GenericType);
 
-                    await (Task)ExecuteDeleteAsync.Invoke(null, new object[] { DbSetResult.Value, CancellationToken.None })!;
+                await (Task)ExecuteDeleteAsync.Invoke(null, new object[] { DbSetResult.Value, CancellationToken.None })!;
             }
 
             if (specificTableName != null)

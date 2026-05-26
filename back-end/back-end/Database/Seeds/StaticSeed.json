@@ -76,5 +76,9 @@
         "Hiatus",
         "Cancelled",
         "Unknown"
+    ],
+    "Languages": [
+        "pt-br",
+        "en"
     ]
 }

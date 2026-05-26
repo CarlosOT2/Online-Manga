@@ -17,6 +17,6 @@
         public int LanguageId { get; set; }
         public Models.Language Language { get; set; } = null!;
 
-        public ICollection<Models.Page> Page { get; set; } = new List<Models.Page>();
+        // public ICollection<Models.Page> Page { get; set; } = new List<Models.Page>();
     }
 }

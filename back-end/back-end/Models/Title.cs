@@ -23,6 +23,6 @@
         public int StatusId { get; set; }
         public Models.Status Status { get; set; } = null!;
 
-        public ICollection<Models.AlternativeName> AlternativeNames { get; set; } = new List<Models.AlternativeName>();
+        // public ICollection<Models.AlternativeName> AlternativeNames { get; set; } = new List<Models.AlternativeName>();
     }
 }

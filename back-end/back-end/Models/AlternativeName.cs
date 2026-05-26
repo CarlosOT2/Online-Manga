@@ -3,7 +3,7 @@
     public class AlternativeName
     {
         public int id { get; set; }
-        public string value { get; set; } = string.Empty;
+        public string name { get; set; } = string.Empty;
 
         public int LanguageId { get; set; }
         public Models.Language Language { get; set; } = null!;

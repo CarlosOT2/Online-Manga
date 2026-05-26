@@ -1,1148 +1,1424 @@
-diff --git a/back-end/back-end/Controllers/Static.cs b/back-end/back-end/Controllers/Static.cs
-index 9219341..40ae5aa 100644
---- a/back-end/back-end/Controllers/Static.cs
-+++ b/back-end/back-end/Controllers/Static.cs
-@@ -5,6 +5,7 @@ using back_end.Shared.Core;
- using back_end.Shared.Utils;
- using back_end.Shared.Cache;
- using Microsoft.Extensions.Options;
-+using back_end.Shared.Settings;
+diff --git a/back-end/back-end/Controllers/Seeds.cs b/back-end/back-end/Controllers/Seeds.cs
+index 4057156..6f4f296 100644
+--- a/back-end/back-end/Controllers/Seeds.cs
++++ b/back-end/back-end/Controllers/Seeds.cs
+@@ -1,6 +1,8 @@
+ ﻿using back_end.Data;
+ using Microsoft.AspNetCore.Mvc;
+ using back_end.Database.DbAccess;
++using Microsoft.EntityFrameworkCore;
++using System.Runtime.Intrinsics.X86;
  
  namespace back_end.Controllers
  {
+@@ -17,6 +19,40 @@ namespace back_end.Controllers
+             _DbSeeds = new DbSeeds(context); 
+         }
+ 
++        // Chapter seeding is done manually because each title requires multiple chapters
++        // with unique and ordered numbers — something that couldn't be easily implemented
++        // in the generic DbSeeds.Run<T>() method.
++        private async Task SeedChapters()
++        {
++            Random random = Random.Shared;
++            List<Models.Title> titles = await _context.Titles.ToListAsync();
++            List<Models.Chapter> chapters = new List<Models.Chapter>()!;
++
++            int id = 1;
++            foreach (Models.Title title in titles)
++            {
++                int totalChapters = random.Next(1, 201);
++                SortedSet<decimal> chapterNumbers = new SortedSet<decimal>()!;
++
++                while (chapterNumbers.Count < totalChapters)
++                {
++                    double roll = random.NextDouble();
++                    decimal number = roll < 0.05 ? random.Next(151, 201)
++                                   : roll < 0.25 ? random.Next(51, 151)
++                                   : random.Next(1, 51);
++
++                    decimal fraction = random.NextDouble() < 0.7 ? 0m : random.Next(1, 10) / 10m;
++                    chapterNumbers.Add(number + fraction);
++                }
++
++                foreach (decimal number in chapterNumbers)
++                    chapters.Add(new Models.Chapter { id = id++, TitleId = title.id, number = number });
++            }
++
++            _context.Chapters.AddRange(chapters);
++            await _context.SaveChangesAsync();
++        }
++
+         [HttpPost("Static")]
+         public async Task<IActionResult> Static()
+         {
+@@ -27,9 +63,8 @@ namespace back_end.Controllers
+         [HttpPost("Seed")]
+         public async Task<IActionResult> Seed([FromBody] int rows = 500)
+         {
+-            await _DbSeeds.Clear("Titles");
+-            await _DbSeeds.Clear("Artists");
+-            await _DbSeeds.Clear("Authors");
++            await _DbSeeds.Clear();
++            await _DbSeeds.Static();
+ 
+             await _DbSeeds.Run<Models.Title>("Titles", rows, new Models.Title {
+                 name = "Manga",    
+@@ -46,6 +81,10 @@ namespace back_end.Controllers
+             });
+             await _DbSeeds.Run<Models.Artist>("Artists", rows, new Models.Artist { name = "Artist" });
+             await _DbSeeds.Run<Models.Author>("Authors", rows, new Models.Author { name = "Author" });
++            await _DbSeeds.Run<Models.AlternativeName>("AlternativeNames", rows, new Models.AlternativeName { name = "Alternative Name" });
++            await _DbSeeds.Run<Models.ScanGroup>("ScanGroups", rows, new Models.ScanGroup { name = "ScanGroup", websiteUrl = "teste" });
++            await SeedChapters();
++            await _DbSeeds.Run<Models.ChapterTranslation>("ChapterTranslations", rows, new Models.ChapterTranslation { chapterTitle = "Teste" });
+ 
+             return Ok("Seed executed");
+         }
 diff --git a/back-end/back-end/Database/AppDbContext.cs b/back-end/back-end/Database/AppDbContext.cs
-index 7ae3321..6d98eb9 100644
+index 6d98eb9..08170a3 100644
 --- a/back-end/back-end/Database/AppDbContext.cs
 +++ b/back-end/back-end/Database/AppDbContext.cs
-@@ -1,25 +1,81 @@
- ﻿using back_end.Models;
- using Microsoft.EntityFrameworkCore;
- using back_end.Shared.Core;
-+using back_end.Shared.Settings;
-+using Microsoft.Extensions.Options;
+@@ -29,7 +29,7 @@ namespace back_end.Data
+         public DbSet<Chapter> Chapters { get; set; }
+         public DbSet<ChapterTranslation> ChapterTranslations { get; set; }
+         public DbSet<ScanGroup> ScanGroups { get; set; }
+-        public DbSet<Page> Pages { get; set; }
++        // public DbSet<Page> Pages { get; set; }
  
+         public DbSet<AlternativeName> AlternativeNames { get; set; }
+         public DbSet<Language> Languages { get; set; }
+@@ -50,13 +50,14 @@ namespace back_end.Data
+                 e.ToTable(ct => ct.HasCheckConstraint("CK_ChapterTranslation_ViewCount", "\"viewCount\" >= 0"));
+             });
  
- namespace back_end.Data
- {
-     public class AppDbContext : DbContext
-     {
--        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-+        private readonly ValidationSettings _validation;
++            /*
+             modelBuilder.Entity<Page>(e =>
+             {
+                 e.HasIndex(p => new { p.ChapterTranslationId, p.pageNumber }).IsUnique();
+                 e.Property(p => p.imageUrl).HasMaxLength(_validation.Page.ImageUrlMaxLength);
+                 e.ToTable(p => p.HasCheckConstraint("CK_PageNumber", "\"pageNumber\" >= 0"));
+             });
+-
++            */
+             modelBuilder.Entity<Title>(e =>
+             {
+                 e.Property(t => t.name).IsRequired().HasMaxLength(_validation.Title.NameMaxLength);
+@@ -66,13 +67,14 @@ namespace back_end.Data
+             });
+             modelBuilder.Entity<AlternativeName>(e =>
+             {
+-                e.Property(e => e.value).IsRequired().HasMaxLength(_validation.AlternativeName.ValueMaxLength);
++                e.Property(e => e.name).IsRequired().HasMaxLength(_validation.AlternativeName.ValueMaxLength);
+                 // Prevent cascading delete: deleting a Language should not remove AlternativeNames
+                 e.HasOne(e => e.Language)
+                       .WithMany()
+                       .HasForeignKey(e => e.LanguageId)
+                       .OnDelete(DeleteBehavior.Restrict);
+             });
 +
-+        public AppDbContext(DbContextOptions<AppDbContext> options, IOptions<ValidationSettings> validation) : base(options)
-         {
-+            _validation = validation.Value;
          }
  
-         public DbSet<Title> Titles { get; set; }
-         public DbSet<Author> Authors { get; set; }
-         public DbSet<Artist> Artists { get; set; }
-+
-         public DbSet<Genre> Genres { get; set; }
-         public DbSet<Theme> Themes { get; set; }
-         public DbSet<Demographic> Demographics { get; set; }
-         public DbSet<ContentRating> ContentRatings { get; set; }
-         public DbSet<Status> Statuses { get; set; }
  
-+        public DbSet<Chapter> Chapters { get; set; }
-+        public DbSet<ChapterTranslation> ChapterTranslations { get; set; }
-+        public DbSet<ScanGroup> ScanGroups { get; set; }
-+        public DbSet<Page> Pages { get; set; }
+diff --git a/back-end/back-end/Database/DbAccess/DbSeeds.cs b/back-end/back-end/Database/DbAccess/DbSeeds.cs
+index 68b9795..86bfdb4 100644
+--- a/back-end/back-end/Database/DbAccess/DbSeeds.cs
++++ b/back-end/back-end/Database/DbAccess/DbSeeds.cs
+@@ -23,7 +23,7 @@ namespace back_end.Database.DbAccess
+             {
+                 Result<object> DbSetResult = _context.GetDbSet(DbSetName);
+ 
+-                if(DbSetResult.IsFailure)
++                if (DbSetResult.IsFailure)
+                     throw new InvalidOperationException(
+                         "'DbSetResult' returned IsFailure during seed static operation."
+                     );
+@@ -202,6 +202,23 @@ namespace back_end.Database.DbAccess
+                             int randomId = (int)idProp.GetValue(randomValue)!;
+                             prop.SetValue(item, randomId);
+                         }
++                        else if (type == typeof(decimal))
++                        {
++                            Random random = Random.Shared;
 +
-+        public DbSet<AlternativeName> AlternativeNames { get; set; }
-+        public DbSet<Language> Languages { get; set; }
++                            decimal value = (random.NextDouble() < 0.7 ? 0m : random.Next(1, 10) / 10m) + i;
 +
-+        protected override void OnModelCreating(ModelBuilder modelBuilder)
-+        {
-+            modelBuilder.Entity<Chapter>(e =>
-+            {
-+                e.HasIndex(c => new { c.TitleId, c.number }).IsUnique();
-+                e.Property(c => c.number).HasColumnType("decimal(5,1)");
-+                e.ToTable(c => c.HasCheckConstraint("CK_ChapterNumber", "number >= 0"));
-+            });
-+
-+            modelBuilder.Entity<ChapterTranslation>(e =>
-+            {
-+                e.HasIndex(ct => new { ct.ChapterId, ct.ScanGroupId, ct.LanguageId }).IsUnique();
-+                e.Property(ct => ct.chapterTitle).HasMaxLength(_validation.ChapterTranslation.ChapterTitleMaxLength);
-+                e.ToTable(ct => ct.HasCheckConstraint("CK_ChapterTranslation_ViewCount", "\"viewCount\" >= 0"));
-+            });
-+
-+            modelBuilder.Entity<Page>(e =>
-+            {
-+                e.HasIndex(p => new { p.ChapterTranslationId, p.pageNumber }).IsUnique();
-+                e.Property(p => p.imageUrl).HasMaxLength(_validation.Page.ImageUrlMaxLength);
-+                e.ToTable(p => p.HasCheckConstraint("CK_PageNumber", "\"pageNumber\" >= 0"));
-+            });
-+
-+            modelBuilder.Entity<Title>(e =>
-+            {
-+                e.Property(t => t.name).IsRequired().HasMaxLength(_validation.Title.NameMaxLength);
-+                e.HasIndex(t => t.name).IsUnique();
-+                e.Property(t => t.synopsis).IsRequired().HasMaxLength(_validation.Title.SynopsisMaxLength);
-+                e.Property(t => t.img).IsRequired().HasMaxLength(_validation.Title.ImgMaxLength);
-+            });
-+            modelBuilder.Entity<AlternativeName>(e =>
-+            {
-+                e.Property(e => e.value).IsRequired().HasMaxLength(_validation.AlternativeName.ValueMaxLength);
-+                // Prevent cascading delete: deleting a Language should not remove AlternativeNames
-+                e.HasOne(e => e.Language)
-+                      .WithMany()
-+                      .HasForeignKey(e => e.LanguageId)
-+                      .OnDelete(DeleteBehavior.Restrict);
-+            });
-+        }
-+
-+
-         public Result<object> GetDbSet(string name)
-         {
-             object? property = this
-diff --git a/back-end/back-end/Database/DbAccess/Static.cs b/back-end/back-end/Database/DbAccess/Static.cs
-index e9dc82b..8257475 100644
---- a/back-end/back-end/Database/DbAccess/Static.cs
-+++ b/back-end/back-end/Database/DbAccess/Static.cs
-@@ -1,9 +1,8 @@
--﻿using System.Collections.Generic;
--using System.Runtime;
--using back_end.Data;
-+﻿using back_end.Data;
- using back_end.Database.DbAccess.Interfaces;
- using back_end.DTOs;
- using back_end.Shared.Cache;
-+using back_end.Shared.Settings;
- using back_end.Shared.Core;
- using Microsoft.EntityFrameworkCore;
- using Microsoft.Extensions.Options;
-diff --git a/back-end/back-end/Models/ContentRating.cs b/back-end/back-end/Models/ContentRating.cs
-index ad29efd..78976cd 100644
---- a/back-end/back-end/Models/ContentRating.cs
-+++ b/back-end/back-end/Models/ContentRating.cs
-@@ -4,6 +4,6 @@
++                            prop.SetValue(item, i + value);
++                        }
++                        else if (type == typeof(bool))
++                        {
++                            // Random Boolean using the condition
++                            prop.SetValue(item, Random.Shared.Next(2) == 0);
++                        }
++                        else if (type == typeof(int))
++                        {
++                            prop.SetValue(item, Random.Shared.Next(1, 10001));
++                        }
+                         else
+                         {
+                             throw new InvalidOperationException($"Unable to handle with type {type}");
+@@ -227,16 +244,16 @@ namespace back_end.Database.DbAccess
+                     );
+ 
+                 if (DbSetResult.Value == null)
+-                        throw new ArgumentException($"Could not find DbSet from the table called '{name}'");
++                    throw new ArgumentException($"Could not find DbSet from the table called '{name}'");
+ 
+-                    Type GenericType = DbSetResult.Value.GetType().GenericTypeArguments[0];
++                Type GenericType = DbSetResult.Value.GetType().GenericTypeArguments[0];
+ 
+-                    MethodInfo ExecuteDeleteAsync = typeof(EntityFrameworkQueryableExtensions)
+-                    .GetMethods()
+-                    .First(m => m.Name == "ExecuteDeleteAsync")
+-                    .MakeGenericMethod(GenericType);
++                MethodInfo ExecuteDeleteAsync = typeof(EntityFrameworkQueryableExtensions)
++                .GetMethods()
++                .First(m => m.Name == "ExecuteDeleteAsync")
++                .MakeGenericMethod(GenericType);
+ 
+-                    await (Task)ExecuteDeleteAsync.Invoke(null, new object[] { DbSetResult.Value, CancellationToken.None })!;
++                await (Task)ExecuteDeleteAsync.Invoke(null, new object[] { DbSetResult.Value, CancellationToken.None })!;
+             }
+ 
+             if (specificTableName != null)
+diff --git a/back-end/back-end/Database/Seeds/StaticSeed.json b/back-end/back-end/Database/Seeds/StaticSeed.json
+index 1d4df5e..938e1eb 100644
+--- a/back-end/back-end/Database/Seeds/StaticSeed.json
++++ b/back-end/back-end/Database/Seeds/StaticSeed.json
+@@ -76,5 +76,9 @@
+         "Hiatus",
+         "Cancelled",
+         "Unknown"
++    ],
++    "Languages": [
++        "pt-br",
++        "en"
+     ]
+ }
+\ No newline at end of file
+diff --git a/back-end/back-end/Models/AlternativeName.cs b/back-end/back-end/Models/AlternativeName.cs
+index c049a01..be81601 100644
+--- a/back-end/back-end/Models/AlternativeName.cs
++++ b/back-end/back-end/Models/AlternativeName.cs
+@@ -3,7 +3,7 @@
+     public class AlternativeName
      {
          public int id { get; set; }
-         public string name { get; set; } = string.Empty;
--        
-+        public ICollection<Models.Title> Title { get; set; } = new List<Models.Title>();
+-        public string value { get; set; } = string.Empty;
++        public string name { get; set; } = string.Empty;
+ 
+         public int LanguageId { get; set; }
+         public Models.Language Language { get; set; } = null!;
+diff --git a/back-end/back-end/Models/ChapterTranslation.cs b/back-end/back-end/Models/ChapterTranslation.cs
+index 4ad7ac8..eb5541e 100644
+--- a/back-end/back-end/Models/ChapterTranslation.cs
++++ b/back-end/back-end/Models/ChapterTranslation.cs
+@@ -17,6 +17,6 @@
+         public int LanguageId { get; set; }
+         public Models.Language Language { get; set; } = null!;
+ 
+-        public ICollection<Models.Page> Page { get; set; } = new List<Models.Page>();
++        // public ICollection<Models.Page> Page { get; set; } = new List<Models.Page>();
      }
  }
-diff --git a/back-end/back-end/Models/Demographic.cs b/back-end/back-end/Models/Demographic.cs
-index 02ecf15..80cc161 100644
---- a/back-end/back-end/Models/Demographic.cs
-+++ b/back-end/back-end/Models/Demographic.cs
-@@ -4,7 +4,6 @@
+\ No newline at end of file
+diff --git a/back-end/back-end/Models/Language.cs b/back-end/back-end/Models/Language.cs
+index 1afc5d7..fb0309e 100644
+--- a/back-end/back-end/Models/Language.cs
++++ b/back-end/back-end/Models/Language.cs
+@@ -3,10 +3,9 @@
+     public class Language
      {
          public int id { get; set; }
-         public string name { get; set; } = string.Empty;
--        
--
-+        public ICollection<Models.Title> Title { get; set; } = new List<Models.Title>();
+-        public string code { get; set; } = string.Empty; // "pt-br", "en", "es"
+-        public string name { get; set; } = string.Empty; // "Português", "English", "Español"
++        public string name { get; set; } = string.Empty; // "pt-br", "en", "es"
+         public ICollection<Models.ChapterTranslation> ChapterTranslation { get; set; } = new List<Models.ChapterTranslation>();
+-        public ICollection<Models.AlternativeName> AlternativeNames { get; set; } = new List<Models.AlternativeName>();
++        // public ICollection<Models.AlternativeName> AlternativeNames { get; set; } = new List<Models.AlternativeName>();
+ 
      }
  }
-diff --git a/back-end/back-end/Models/Genre.cs b/back-end/back-end/Models/Genre.cs
-index dff8aa2..b88213d 100644
---- a/back-end/back-end/Models/Genre.cs
-+++ b/back-end/back-end/Models/Genre.cs
-@@ -4,7 +4,6 @@
+diff --git a/back-end/back-end/Models/Page.cs b/back-end/back-end/Models/Page.cs
+index ad0ce2a..d86fa7d 100644
+--- a/back-end/back-end/Models/Page.cs
++++ b/back-end/back-end/Models/Page.cs
+@@ -1,5 +1,6 @@
+ ﻿namespace back_end.Models
+ {
++    /*
+     public class Page
      {
          public int id { get; set; }
-         public string name { get; set; } = string.Empty;
--
-         public ICollection<Models.Title> Title { get; set; } = new List<Models.Title>();
+@@ -9,4 +10,5 @@
+         public int ChapterTranslationId { get; set; }
+         public Models.ChapterTranslation ChapterTranslation { get; set; } = null!;
      }
++    */
  }
-diff --git a/back-end/back-end/Models/Status.cs b/back-end/back-end/Models/Status.cs
-index f1d1b99..b6d7993 100644
---- a/back-end/back-end/Models/Status.cs
-+++ b/back-end/back-end/Models/Status.cs
-@@ -4,7 +4,6 @@
-     {
-         public int id { get; set; }
-         public string name { get; set; } = string.Empty;
--        
--
-+        public ICollection<Models.Title> Title { get; set; } = new List<Models.Title>();
-     }
- }
-diff --git a/back-end/back-end/Models/Theme.cs b/back-end/back-end/Models/Theme.cs
-index 82e31ba..8468d22 100644
---- a/back-end/back-end/Models/Theme.cs
-+++ b/back-end/back-end/Models/Theme.cs
-@@ -4,7 +4,6 @@
-     {
-         public int id { get; set; }
-         public string name { get; set; } = string.Empty;
--
-         public ICollection<Models.Title> Title { get; set; } = new List<Models.Title>();
-     }
- }
+\ No newline at end of file
 diff --git a/back-end/back-end/Models/Title.cs b/back-end/back-end/Models/Title.cs
-index afc57b5..74c9a88 100644
+index 74c9a88..71a72dc 100644
 --- a/back-end/back-end/Models/Title.cs
 +++ b/back-end/back-end/Models/Title.cs
-@@ -8,19 +8,21 @@
-         public DateTime publicationDate { get; set; } = DateTime.MinValue;
-         public string img { get; set; } = string.Empty;
+@@ -23,6 +23,6 @@
+         public int StatusId { get; set; }
+         public Models.Status Status { get; set; } = null!;
  
--        public int StatusId { get; set; }
--        public Models.Status Status { get; set; } 
--
--        public int ContentRatingId { get; set; }
--        public Models.ContentRating ContentRating { get; set; }
--
--        public int DemographicId { get; set; }
--        public Models.Demographic Demographic { get; set; }
--
-         public ICollection<Models.Author> Author { get; set; } = new List<Models.Author>();
-         public ICollection<Models.Artist> Artist { get; set; } = new List<Models.Artist>();
- 
-         public ICollection<Models.Genre> Genre { get; set; } = new List<Models.Genre>();
-         public ICollection<Models.Theme> Theme { get; set; } = new List<Models.Theme>();
-+
-+        public int DemographicId { get; set; }
-+        public Models.Demographic Demographic { get; set; } = null!;
-+
-+        public int ContentRatingId { get; set; }
-+        public Models.ContentRating ContentRating { get; set; } = null!;
-+
-+        public int StatusId { get; set; }
-+        public Models.Status Status { get; set; } = null!;
-+
-+        public ICollection<Models.AlternativeName> AlternativeNames { get; set; } = new List<Models.AlternativeName>();
+-        public ICollection<Models.AlternativeName> AlternativeNames { get; set; } = new List<Models.AlternativeName>();
++        // public ICollection<Models.AlternativeName> AlternativeNames { get; set; } = new List<Models.AlternativeName>();
      }
  }
-diff --git a/back-end/back-end/Program.cs b/back-end/back-end/Program.cs
-index 729c096..e2f67cb 100644
---- a/back-end/back-end/Program.cs
-+++ b/back-end/back-end/Program.cs
-@@ -1,6 +1,7 @@
- 
- using back_end.Data;
- using back_end.Shared.Cache;
-+using back_end.Shared.Settings;
- using Microsoft.EntityFrameworkCore;
- using StackExchange.Redis;
- 
-@@ -28,7 +29,9 @@ namespace back_end
-             //? Dependency Injection
-             builder.Services.AddScoped<Database.DbAccess.Interfaces.ITitle, Database.DbAccess.Title>();
-             builder.Services.AddScoped<Database.DbAccess.Interfaces.IStatic, Database.DbAccess.Static>();
--            builder.Services.Configure<CacheSettings>( builder.Configuration.GetSection("CacheSettings"));
-+
-+            builder.Services.Configure<CacheSettings>(builder.Configuration.GetSection("CacheSettings"));
-+            builder.Services.Configure<ValidationSettings>(builder.Configuration.GetSection("Database:Tables:Validation"));
- 
-             builder.Services.AddSingleton<CacheHandler>();
-             builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("redis:6379"));
-diff --git a/back-end/back-end/Shared/Cache/CacheSettings.cs b/back-end/back-end/Shared/Cache/CacheSettings.cs
-deleted file mode 100644
-index 33ec884..0000000
---- a/back-end/back-end/Shared/Cache/CacheSettings.cs
-+++ /dev/null
-@@ -1,13 +0,0 @@
--﻿namespace back_end.Shared.Cache
--{
--    public class CacheSettings
--    {
--        public StaticCacheSettings Static { get; set; } = new();
--    }
--
--    public class StaticCacheSettings
--    {
--        public int maxage { get; set; }
--        public string key { get; set; } = string.Empty;
--    }
--}
-\ No newline at end of file
-diff --git a/back-end/back-end/appsettings.json b/back-end/back-end/appsettings.json
-index 45a7376..d74c124 100644
---- a/back-end/back-end/appsettings.json
-+++ b/back-end/back-end/appsettings.json
-@@ -1,4 +1,24 @@
- {
-+    "Database": {
-+        "Tables": {
-+            "Validation": {
-+                "Title": {
-+                    "NameMaxLength": 255,
-+                    "SynopsisMaxLength": 5000,
-+                    "ImgMaxLength": 500
-+                },
-+                "ChapterTranslation": {
-+                    "ChapterTitleMaxLength": 255
-+                },
-+                "Page": {
-+                    "ImageUrlMaxLength": 500
-+                },
-+                "AlternativeName": {
-+                    "ValueMaxLength": 500
-+                }
-+            }
-+        }
-+    },
-     "CacheSettings": {
-         "Static": {
-             // Http Header maxage
-diff --git a/back-end/back-end/back-end.csproj b/back-end/back-end/back-end.csproj
-index 9d22138..ea0f831 100644
---- a/back-end/back-end/back-end.csproj
-+++ b/back-end/back-end/back-end.csproj
-@@ -22,4 +22,8 @@
-     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-   </ItemGroup>
- 
-+  <ItemGroup>
-+    <Folder Include="Migrations\" />
-+  </ItemGroup>
-+
- </Project>
 diff --git a/diff.txt b/diff.txt
-index 00a63d0..925a2b5 100644
+index 2e5c3b8..061cacc 100644
 --- a/diff.txt
 +++ b/diff.txt
-@@ -1,370 +0,0 @@
+@@ -1,1148 +0,0 @@
+-diff --git a/back-end/back-end/Controllers/Static.cs b/back-end/back-end/Controllers/Static.cs
+-index 9219341..40ae5aa 100644
+---- a/back-end/back-end/Controllers/Static.cs
+-+++ b/back-end/back-end/Controllers/Static.cs
+-@@ -5,6 +5,7 @@ using back_end.Shared.Core;
+- using back_end.Shared.Utils;
+- using back_end.Shared.Cache;
+- using Microsoft.Extensions.Options;
+-+using back_end.Shared.Settings;
+- 
+- namespace back_end.Controllers
+- {
+-diff --git a/back-end/back-end/Database/AppDbContext.cs b/back-end/back-end/Database/AppDbContext.cs
+-index 7ae3321..6d98eb9 100644
+---- a/back-end/back-end/Database/AppDbContext.cs
+-+++ b/back-end/back-end/Database/AppDbContext.cs
+-@@ -1,25 +1,81 @@
+- ﻿using back_end.Models;
+- using Microsoft.EntityFrameworkCore;
+- using back_end.Shared.Core;
+-+using back_end.Shared.Settings;
+-+using Microsoft.Extensions.Options;
+- 
+- 
+- namespace back_end.Data
+- {
+-     public class AppDbContext : DbContext
+-     {
+--        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+-+        private readonly ValidationSettings _validation;
+-+
+-+        public AppDbContext(DbContextOptions<AppDbContext> options, IOptions<ValidationSettings> validation) : base(options)
+-         {
+-+            _validation = validation.Value;
+-         }
+- 
+-         public DbSet<Title> Titles { get; set; }
+-         public DbSet<Author> Authors { get; set; }
+-         public DbSet<Artist> Artists { get; set; }
+-+
+-         public DbSet<Genre> Genres { get; set; }
+-         public DbSet<Theme> Themes { get; set; }
+-         public DbSet<Demographic> Demographics { get; set; }
+-         public DbSet<ContentRating> ContentRatings { get; set; }
+-         public DbSet<Status> Statuses { get; set; }
+- 
+-+        public DbSet<Chapter> Chapters { get; set; }
+-+        public DbSet<ChapterTranslation> ChapterTranslations { get; set; }
+-+        public DbSet<ScanGroup> ScanGroups { get; set; }
+-+        public DbSet<Page> Pages { get; set; }
+-+
+-+        public DbSet<AlternativeName> AlternativeNames { get; set; }
+-+        public DbSet<Language> Languages { get; set; }
+-+
+-+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+-+        {
+-+            modelBuilder.Entity<Chapter>(e =>
+-+            {
+-+                e.HasIndex(c => new { c.TitleId, c.number }).IsUnique();
+-+                e.Property(c => c.number).HasColumnType("decimal(5,1)");
+-+                e.ToTable(c => c.HasCheckConstraint("CK_ChapterNumber", "number >= 0"));
+-+            });
+-+
+-+            modelBuilder.Entity<ChapterTranslation>(e =>
+-+            {
+-+                e.HasIndex(ct => new { ct.ChapterId, ct.ScanGroupId, ct.LanguageId }).IsUnique();
+-+                e.Property(ct => ct.chapterTitle).HasMaxLength(_validation.ChapterTranslation.ChapterTitleMaxLength);
+-+                e.ToTable(ct => ct.HasCheckConstraint("CK_ChapterTranslation_ViewCount", "\"viewCount\" >= 0"));
+-+            });
+-+
+-+            modelBuilder.Entity<Page>(e =>
+-+            {
+-+                e.HasIndex(p => new { p.ChapterTranslationId, p.pageNumber }).IsUnique();
+-+                e.Property(p => p.imageUrl).HasMaxLength(_validation.Page.ImageUrlMaxLength);
+-+                e.ToTable(p => p.HasCheckConstraint("CK_PageNumber", "\"pageNumber\" >= 0"));
+-+            });
+-+
+-+            modelBuilder.Entity<Title>(e =>
+-+            {
+-+                e.Property(t => t.name).IsRequired().HasMaxLength(_validation.Title.NameMaxLength);
+-+                e.HasIndex(t => t.name).IsUnique();
+-+                e.Property(t => t.synopsis).IsRequired().HasMaxLength(_validation.Title.SynopsisMaxLength);
+-+                e.Property(t => t.img).IsRequired().HasMaxLength(_validation.Title.ImgMaxLength);
+-+            });
+-+            modelBuilder.Entity<AlternativeName>(e =>
+-+            {
+-+                e.Property(e => e.value).IsRequired().HasMaxLength(_validation.AlternativeName.ValueMaxLength);
+-+                // Prevent cascading delete: deleting a Language should not remove AlternativeNames
+-+                e.HasOne(e => e.Language)
+-+                      .WithMany()
+-+                      .HasForeignKey(e => e.LanguageId)
+-+                      .OnDelete(DeleteBehavior.Restrict);
+-+            });
+-+        }
+-+
+-+
+-         public Result<object> GetDbSet(string name)
+-         {
+-             object? property = this
+-diff --git a/back-end/back-end/Database/DbAccess/Static.cs b/back-end/back-end/Database/DbAccess/Static.cs
+-index e9dc82b..8257475 100644
+---- a/back-end/back-end/Database/DbAccess/Static.cs
+-+++ b/back-end/back-end/Database/DbAccess/Static.cs
+-@@ -1,9 +1,8 @@
+--﻿using System.Collections.Generic;
+--using System.Runtime;
+--using back_end.Data;
+-+﻿using back_end.Data;
+- using back_end.Database.DbAccess.Interfaces;
+- using back_end.DTOs;
+- using back_end.Shared.Cache;
+-+using back_end.Shared.Settings;
+- using back_end.Shared.Core;
+- using Microsoft.EntityFrameworkCore;
+- using Microsoft.Extensions.Options;
+-diff --git a/back-end/back-end/Models/ContentRating.cs b/back-end/back-end/Models/ContentRating.cs
+-index ad29efd..78976cd 100644
+---- a/back-end/back-end/Models/ContentRating.cs
+-+++ b/back-end/back-end/Models/ContentRating.cs
+-@@ -4,6 +4,6 @@
+-     {
+-         public int id { get; set; }
+-         public string name { get; set; } = string.Empty;
+--        
+-+        public ICollection<Models.Title> Title { get; set; } = new List<Models.Title>();
+-     }
+- }
+-diff --git a/back-end/back-end/Models/Demographic.cs b/back-end/back-end/Models/Demographic.cs
+-index 02ecf15..80cc161 100644
+---- a/back-end/back-end/Models/Demographic.cs
+-+++ b/back-end/back-end/Models/Demographic.cs
+-@@ -4,7 +4,6 @@
+-     {
+-         public int id { get; set; }
+-         public string name { get; set; } = string.Empty;
+--        
+--
+-+        public ICollection<Models.Title> Title { get; set; } = new List<Models.Title>();
+-     }
+- }
+-diff --git a/back-end/back-end/Models/Genre.cs b/back-end/back-end/Models/Genre.cs
+-index dff8aa2..b88213d 100644
+---- a/back-end/back-end/Models/Genre.cs
+-+++ b/back-end/back-end/Models/Genre.cs
+-@@ -4,7 +4,6 @@
+-     {
+-         public int id { get; set; }
+-         public string name { get; set; } = string.Empty;
+--
+-         public ICollection<Models.Title> Title { get; set; } = new List<Models.Title>();
+-     }
+- }
+-diff --git a/back-end/back-end/Models/Status.cs b/back-end/back-end/Models/Status.cs
+-index f1d1b99..b6d7993 100644
+---- a/back-end/back-end/Models/Status.cs
+-+++ b/back-end/back-end/Models/Status.cs
+-@@ -4,7 +4,6 @@
+-     {
+-         public int id { get; set; }
+-         public string name { get; set; } = string.Empty;
+--        
+--
+-+        public ICollection<Models.Title> Title { get; set; } = new List<Models.Title>();
+-     }
+- }
+-diff --git a/back-end/back-end/Models/Theme.cs b/back-end/back-end/Models/Theme.cs
+-index 82e31ba..8468d22 100644
+---- a/back-end/back-end/Models/Theme.cs
+-+++ b/back-end/back-end/Models/Theme.cs
+-@@ -4,7 +4,6 @@
+-     {
+-         public int id { get; set; }
+-         public string name { get; set; } = string.Empty;
+--
+-         public ICollection<Models.Title> Title { get; set; } = new List<Models.Title>();
+-     }
+- }
+-diff --git a/back-end/back-end/Models/Title.cs b/back-end/back-end/Models/Title.cs
+-index afc57b5..74c9a88 100644
+---- a/back-end/back-end/Models/Title.cs
+-+++ b/back-end/back-end/Models/Title.cs
+-@@ -8,19 +8,21 @@
+-         public DateTime publicationDate { get; set; } = DateTime.MinValue;
+-         public string img { get; set; } = string.Empty;
+- 
+--        public int StatusId { get; set; }
+--        public Models.Status Status { get; set; } 
+--
+--        public int ContentRatingId { get; set; }
+--        public Models.ContentRating ContentRating { get; set; }
+--
+--        public int DemographicId { get; set; }
+--        public Models.Demographic Demographic { get; set; }
+--
+-         public ICollection<Models.Author> Author { get; set; } = new List<Models.Author>();
+-         public ICollection<Models.Artist> Artist { get; set; } = new List<Models.Artist>();
+- 
+-         public ICollection<Models.Genre> Genre { get; set; } = new List<Models.Genre>();
+-         public ICollection<Models.Theme> Theme { get; set; } = new List<Models.Theme>();
+-+
+-+        public int DemographicId { get; set; }
+-+        public Models.Demographic Demographic { get; set; } = null!;
+-+
+-+        public int ContentRatingId { get; set; }
+-+        public Models.ContentRating ContentRating { get; set; } = null!;
+-+
+-+        public int StatusId { get; set; }
+-+        public Models.Status Status { get; set; } = null!;
+-+
+-+        public ICollection<Models.AlternativeName> AlternativeNames { get; set; } = new List<Models.AlternativeName>();
+-     }
+- }
 -diff --git a/back-end/back-end/Program.cs b/back-end/back-end/Program.cs
--index 9362a4a..729c096 100644
+-index 729c096..e2f67cb 100644
 ---- a/back-end/back-end/Program.cs
 -+++ b/back-end/back-end/Program.cs
--@@ -33,7 +33,6 @@ namespace back_end
+-@@ -1,6 +1,7 @@
+- 
+- using back_end.Data;
+- using back_end.Shared.Cache;
+-+using back_end.Shared.Settings;
+- using Microsoft.EntityFrameworkCore;
+- using StackExchange.Redis;
+- 
+-@@ -28,7 +29,9 @@ namespace back_end
+-             //? Dependency Injection
+-             builder.Services.AddScoped<Database.DbAccess.Interfaces.ITitle, Database.DbAccess.Title>();
+-             builder.Services.AddScoped<Database.DbAccess.Interfaces.IStatic, Database.DbAccess.Static>();
+--            builder.Services.Configure<CacheSettings>( builder.Configuration.GetSection("CacheSettings"));
+-+
+-+            builder.Services.Configure<CacheSettings>(builder.Configuration.GetSection("CacheSettings"));
+-+            builder.Services.Configure<ValidationSettings>(builder.Configuration.GetSection("Database:Tables:Validation"));
+- 
 -             builder.Services.AddSingleton<CacheHandler>();
 -             builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("redis:6379"));
-- 
+-diff --git a/back-end/back-end/Shared/Cache/CacheSettings.cs b/back-end/back-end/Shared/Cache/CacheSettings.cs
+-deleted file mode 100644
+-index 33ec884..0000000
+---- a/back-end/back-end/Shared/Cache/CacheSettings.cs
+-+++ /dev/null
+-@@ -1,13 +0,0 @@
+--﻿namespace back_end.Shared.Cache
+--{
+--    public class CacheSettings
+--    {
+--        public StaticCacheSettings Static { get; set; } = new();
+--    }
 --
--             //? Cors
--             builder.Services.AddCors(options =>
--             {
--diff --git a/front-end/src/Components/Global/Inputs/checkboxinput.tsx b/front-end/src/Components/Global/Inputs/checkboxinput.tsx
--index 8ba57ad..217db0f 100644
----- a/front-end/src/Components/Global/Inputs/checkboxinput.tsx
--+++ b/front-end/src/Components/Global/Inputs/checkboxinput.tsx
--@@ -21,7 +21,9 @@ interface checkboxinput {
--     /** additional CSS classes to apply on input */
--     classNameInput?: string
--     /** onClick of the checkbox input */
---    onClick?: any
--+    onClick?: (e: React.MouseEvent<HTMLInputElement, MouseEvent>) => void
--+    /** Disables value changes from onChange events; the value must be controlled manually (only use when absolutely necessary) */
--+    disableOnChange?: boolean
--     /** apply default style */
--     defaultStyle?: boolean
--     /** aria-label of the checkbox input */
--@@ -40,8 +42,9 @@ export default function checkboxinput({
--     classNameInput = '',
+--    public class StaticCacheSettings
+--    {
+--        public int maxage { get; set; }
+--        public string key { get; set; } = string.Empty;
+--    }
+--}
+-\ No newline at end of file
+-diff --git a/back-end/back-end/appsettings.json b/back-end/back-end/appsettings.json
+-index 45a7376..d74c124 100644
+---- a/back-end/back-end/appsettings.json
+-+++ b/back-end/back-end/appsettings.json
+-@@ -1,4 +1,24 @@
+- {
+-+    "Database": {
+-+        "Tables": {
+-+            "Validation": {
+-+                "Title": {
+-+                    "NameMaxLength": 255,
+-+                    "SynopsisMaxLength": 5000,
+-+                    "ImgMaxLength": 500
+-+                },
+-+                "ChapterTranslation": {
+-+                    "ChapterTitleMaxLength": 255
+-+                },
+-+                "Page": {
+-+                    "ImageUrlMaxLength": 500
+-+                },
+-+                "AlternativeName": {
+-+                    "ValueMaxLength": 500
+-+                }
+-+            }
+-+        }
+-+    },
+-     "CacheSettings": {
+-         "Static": {
+-             // Http Header maxage
+-diff --git a/back-end/back-end/back-end.csproj b/back-end/back-end/back-end.csproj
+-index 9d22138..ea0f831 100644
+---- a/back-end/back-end/back-end.csproj
+-+++ b/back-end/back-end/back-end.csproj
+-@@ -22,4 +22,8 @@
+-     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+-   </ItemGroup>
 - 
--     onClick,
--+    disableOnChange = false,
--     ariaLabel = undefined,
---    ariaLabelledBy = undefined
--+    ariaLabelledBy = undefined,
-- }: checkboxinput) {
-- 
--     const frmtd_value = String(value)
--@@ -59,16 +62,22 @@ export default function checkboxinput({
-- 
--     return (
--         <>
---            <label className={FilterClasses(frmtd_classNameLabel)}>
--+            <label
--+                className={FilterClasses(frmtd_classNameLabel)}
--+            >
--                 <input
--                     type="checkbox"
--                     name={name}
---                    onClick={onClick}
--+                    onClick={(e) => {
--+                        if (onClick) onClick(e)
--+                    }}
--                     value={frmtd_value}
--                     className={FilterClasses(frmtd_classNameInput)}
--                     aria-label={ariaLabel}
--                     aria-labelledby={ariaLabelledBy}
---                    onChange={InputsController.onChange}
--+                    onChange={(e) => {
--+                        if (!disableOnChange) InputsController.onChange(e)
--+                    }}
--                     checked={checked}
--                 />
--                 <Text
--diff --git a/front-end/src/Components/Titles/search.scss b/front-end/src/Components/Titles/search.scss
--index 2be4334..e6c71e8 100644
----- a/front-end/src/Components/Titles/search.scss
--+++ b/front-end/src/Components/Titles/search.scss
--@@ -102,7 +102,7 @@
--             height: 50%;
-- 
--             padding-right: 6px;
---            
+-+  <ItemGroup>
+-+    <Folder Include="Migrations\" />
+-+  </ItemGroup>
 -+
--             transition: filter transition-time.$transition-time ease;
-- 
--             &:focus {
--@@ -160,6 +160,36 @@
--                 &--faceted {
--                     width: 250%;
-- 
--+
--+                    &-label {
--+                        position: relative;
--+
--+                        padding: 2px 4px;
--+
--+                        border: 1px solid var(--color2);
--+                        border-radius: border-radius.$border-radius;
--+
--+                        &-include {
--+                            border: 1px solid var(--true);
--+                            background-color: var(--true-transparent);
--+
--+                            span {
--+                                color: var(--true);
--+                            }
--+                        }
--+
--+                        &-exclude {
--+                            border: 1px solid var(--false);
--+                            background-color: var(--false-transparent);
--+
--+                            span {
--+                                color: var(--false);
--+                            }
--+                        }
--+                    }
--+
--+
--+
--                     section {
--                         ul {
--                             display: flex;
--@@ -175,25 +205,6 @@
-- 
--                                 width: fit-content;
--                                 height: fit-content;
---
---                                label {
---                                    position: relative;
---
---                                    padding: 2px 4px;
---
---                                    border: 1px solid var(--color2);
---                                    border-radius: border-radius.$border-radius;
---
---                                    &:has(input:checked) {
---                                        border: 1px solid var(--true);
---                                        background-color: var(--true-transparent);
---
---                                        span {
---                                            color: var(--true);
---                                        }
---                                    }
---                                }
---
--                             }
--                         }
--                     }
--diff --git a/front-end/src/Components/Titles/search.tsx b/front-end/src/Components/Titles/search.tsx
--index dd32d44..4924408 100644
----- a/front-end/src/Components/Titles/search.tsx
--+++ b/front-end/src/Components/Titles/search.tsx
--@@ -69,6 +69,9 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
--     const id = `label_${useId()}`
-- 
--     const { showFilterItem, setShowFilterItem } = state
--+
--+    // Default suffix used to access exclusion InputsData
--+    const excludeTextString = 'exclude'
--     const InputName = `search${label.replace(/\s+/g, '').replace(/^./, c => c.toUpperCase())}`
-- 
--     return (
--@@ -94,22 +97,26 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
--                     <Text tag='span' no_select={true} not_exceed_X={true}>
--                         {
--                             (() => {
---                                const value = InputsController.data[InputName];
--+
-- 
--                                 // MultiDropDown
---                                if (Array.isArray(value) && value.length > 0 && Array.isArray(options)) {
---                                    return value
--+                                const mddValue = InputsController.data[InputName];
--+                                if (Array.isArray(mddValue) && mddValue.length > 0 && Array.isArray(options)) {
--+                                    return mddValue
--                                         .map(v => options.find((obj: staticData) => obj.id === Number(v))?.name)
--                                         .join(", ");
--                                 }
-- 
--                                 // SelectText & SelectNumber
---                                if ((typeof value === "string" || typeof value === "number") && !options) {
---                                    return value.toString() || "None";
--+                                const slctValue = InputsController.data[InputName];
--+                                if ((typeof slctValue === "string" || typeof slctValue === "number") && !options) {
--+                                    return slctValue.toString() || "None";
--                                 }
-- 
--                                 // Faceted
--+
--                                 if (isPlainObject(options) && Object.values(options).every(Array.isArray)) {
--+
--                                     const optionsKeys = Object.keys(options);
--                                     const staticKeys = getAllStaticKeys()
-- 
--@@ -118,11 +125,20 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
-- 
--                                         if (!staticKeys.includes(frmtdKey)) {
--                                             console.error(`Invalid key "${key}". Cannot format value because it does not exist in data returned by GetAllStatic().`)
---                                            return null
--+                                            return []
--                                         }
-- 
--                                         const keyValues = InputsController.data[`${InputName}_${key}`] ?? []
---                                        return keyValues.map((value: string) => staticMapper(frmtdKey, Number(value)))
--+                                        const keyExcludeValues = InputsController.data[`${InputName}_${key}_${excludeTextString}`] ?? []
--+
--+                                        return [
--+                                            ...keyValues.map((value: string) =>
--+                                                staticMapper(frmtdKey, Number(value))
--+                                            ),
--+                                            ...keyExcludeValues.map((value: string) =>
--+                                                `NOT ${staticMapper(frmtdKey, Number(value))}`
--+                                            )
--+                                        ]
--                                     })
-- 
--                                     if (values.length > 0) return values.join(", ")
--@@ -153,16 +169,57 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
--                                         </Text>
-- 
--                                         <ul>
---                                            {value.map(option => (
---                                                <li key={option.name}>
---                                                    <CheckBoxInput
---                                                        value={option.id}
---                                                        label={option.name}
---                                                        name={`${InputName}_${key}`}
---                                                        InputsController={InputsController}
---                                                    />
---                                                </li>
---                                            ))}
--+                                            {value.map(function (option) {
--+                                                const dataIncludeKey = `${InputName}_${key}`
--+                                                const dataExcludeKey = `${InputName}_${key}_${excludeTextString}`
--+
--+                                                const isInclude = (InputsController.data[dataIncludeKey] ?? []).includes(String(option.id))
--+                                                const isExclude = (InputsController.data[dataExcludeKey] ?? []).includes(String(option.id))
--+
--+                                                return (
--+                                                    <li key={option.name}>
--+                                                        <CheckBoxInput
--+                                                            value={option.id}
--+                                                            label={option.name}
--+                                                            disableOnChange={true}
--+                                                            classNameLabel={
--+                                                                `
--+                                                                search__filters-item__options--faceted-label
--+                                                                ${isExclude ?
--+                                                                    `search__filters-item__options--faceted-label-exclude`
--+                                                                    : isInclude ?
--+                                                                        `search__filters-item__options--faceted-label-include`
--+                                                                        : ''
--+                                                                }
--+                                                                `
--+                                                            }
--+                                                            name={`${InputName}_${key}`}
--+                                                            onClick={(e) => {
--+                                                                const filterById = (list: string[], id: number) =>
--+                                                                    (list ?? []).filter((item) => Number(item) !== id)
--+
--+                                                                const id = String(option.id)
--+                                                                const includes = InputsController.data[dataIncludeKey] ?? []
--+                                                                const excludes = InputsController.data[dataExcludeKey] ?? []
--+
--+                                                                if (isInclude) {
--+                                                                    // include → exclude
--+                                                                    InputsController.changeValue(dataIncludeKey, filterById(includes, option.id))
--+                                                                    InputsController.changeValue(dataExcludeKey, [...excludes, id])
--+                                                                } else if (isExclude) {
--+                                                                    // exclude → none
--+                                                                    InputsController.changeValue(dataIncludeKey, filterById(includes, option.id))
--+                                                                    InputsController.changeValue(dataExcludeKey, filterById(excludes, option.id))
--+                                                                } else {
--+                                                                    // none → include
--+                                                                    InputsController.changeValue(dataIncludeKey, [...includes, id])
--+                                                                }
--+                                                            }}
--+                                                            InputsController={InputsController}
--+                                                        />
--+                                                    </li>
--+                                                )
--+                                            })}
--                                         </ul>
--                                     </section>
--                                 ))
--@@ -236,7 +293,10 @@ export default function Search() {
--         searchPublicationYear: string,
-- 
--         searchTags_Genres: string[],
---        searchTags_Themes: string[]
--+        searchTags_Themes: string[],
--+
--+        searchTags_Genres_exclude: string[],
--+        searchTags_Themes_exclude: string[]
--     }) {
--         const res = await GetTitlesByFilters({
--             name: data.searchName,
--@@ -250,6 +310,9 @@ export default function Search() {
-- 
--             genresIds: data.searchTags_Genres,
--             themesIds: data.searchTags_Themes,
--+
--+            excludeGenresIds: data.searchTags_Genres_exclude,
--+            excludeThemesIds: data.searchTags_Themes_exclude
--         })
-- 
--         if (res) setData(res)
--diff --git a/front-end/src/Shared/form/FormController.ts b/front-end/src/Shared/form/FormController.ts
--index 3302a4f..7c2f308 100644
----- a/front-end/src/Shared/form/FormController.ts
--+++ b/front-end/src/Shared/form/FormController.ts
--@@ -1,7 +1,7 @@
-- //# Types //
-- import type { InputsController, SubmitController } from '../types/FormController'
+- </Project>
+-diff --git a/diff.txt b/diff.txt
+-index 00a63d0..925a2b5 100644
+---- a/diff.txt
+-+++ b/diff.txt
+-@@ -1,370 +0,0 @@
+--diff --git a/back-end/back-end/Program.cs b/back-end/back-end/Program.cs
+--index 9362a4a..729c096 100644
+----- a/back-end/back-end/Program.cs
+--+++ b/back-end/back-end/Program.cs
+--@@ -33,7 +33,6 @@ namespace back_end
+--             builder.Services.AddSingleton<CacheHandler>();
+--             builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect("redis:6379"));
+-- 
+---
+--             //? Cors
+--             builder.Services.AddCors(options =>
+--             {
+--diff --git a/front-end/src/Components/Global/Inputs/checkboxinput.tsx b/front-end/src/Components/Global/Inputs/checkboxinput.tsx
+--index 8ba57ad..217db0f 100644
+----- a/front-end/src/Components/Global/Inputs/checkboxinput.tsx
+--+++ b/front-end/src/Components/Global/Inputs/checkboxinput.tsx
+--@@ -21,7 +21,9 @@ interface checkboxinput {
+--     /** additional CSS classes to apply on input */
+--     classNameInput?: string
+--     /** onClick of the checkbox input */
+---    onClick?: any
+--+    onClick?: (e: React.MouseEvent<HTMLInputElement, MouseEvent>) => void
+--+    /** Disables value changes from onChange events; the value must be controlled manually (only use when absolutely necessary) */
+--+    disableOnChange?: boolean
+--     /** apply default style */
+--     defaultStyle?: boolean
+--     /** aria-label of the checkbox input */
+--@@ -40,8 +42,9 @@ export default function checkboxinput({
+--     classNameInput = '',
+-- 
+--     onClick,
+--+    disableOnChange = false,
+--     ariaLabel = undefined,
+---    ariaLabelledBy = undefined
+--+    ariaLabelledBy = undefined,
+-- }: checkboxinput) {
+-- 
+--     const frmtd_value = String(value)
+--@@ -59,16 +62,22 @@ export default function checkboxinput({
+-- 
+--     return (
+--         <>
+---            <label className={FilterClasses(frmtd_classNameLabel)}>
+--+            <label
+--+                className={FilterClasses(frmtd_classNameLabel)}
+--+            >
+--                 <input
+--                     type="checkbox"
+--                     name={name}
+---                    onClick={onClick}
+--+                    onClick={(e) => {
+--+                        if (onClick) onClick(e)
+--+                    }}
+--                     value={frmtd_value}
+--                     className={FilterClasses(frmtd_classNameInput)}
+--                     aria-label={ariaLabel}
+--                     aria-labelledby={ariaLabelledBy}
+---                    onChange={InputsController.onChange}
+--+                    onChange={(e) => {
+--+                        if (!disableOnChange) InputsController.onChange(e)
+--+                    }}
+--                     checked={checked}
+--                 />
+--                 <Text
+--diff --git a/front-end/src/Components/Titles/search.scss b/front-end/src/Components/Titles/search.scss
+--index 2be4334..e6c71e8 100644
+----- a/front-end/src/Components/Titles/search.scss
+--+++ b/front-end/src/Components/Titles/search.scss
+--@@ -102,7 +102,7 @@
+--             height: 50%;
+-- 
+--             padding-right: 6px;
+---            
+--+
+--             transition: filter transition-time.$transition-time ease;
+-- 
+--             &:focus {
+--@@ -160,6 +160,36 @@
+--                 &--faceted {
+--                     width: 250%;
+-- 
+--+
+--+                    &-label {
+--+                        position: relative;
+--+
+--+                        padding: 2px 4px;
+--+
+--+                        border: 1px solid var(--color2);
+--+                        border-radius: border-radius.$border-radius;
+--+
+--+                        &-include {
+--+                            border: 1px solid var(--true);
+--+                            background-color: var(--true-transparent);
+--+
+--+                            span {
+--+                                color: var(--true);
+--+                            }
+--+                        }
+--+
+--+                        &-exclude {
+--+                            border: 1px solid var(--false);
+--+                            background-color: var(--false-transparent);
+--+
+--+                            span {
+--+                                color: var(--false);
+--+                            }
+--+                        }
+--+                    }
+--+
+--+
+--+
+--                     section {
+--                         ul {
+--                             display: flex;
+--@@ -175,25 +205,6 @@
+-- 
+--                                 width: fit-content;
+--                                 height: fit-content;
+---
+---                                label {
+---                                    position: relative;
+---
+---                                    padding: 2px 4px;
+---
+---                                    border: 1px solid var(--color2);
+---                                    border-radius: border-radius.$border-radius;
+---
+---                                    &:has(input:checked) {
+---                                        border: 1px solid var(--true);
+---                                        background-color: var(--true-transparent);
+---
+---                                        span {
+---                                            color: var(--true);
+---                                        }
+---                                    }
+---                                }
+---
+--                             }
+--                         }
+--                     }
+--diff --git a/front-end/src/Components/Titles/search.tsx b/front-end/src/Components/Titles/search.tsx
+--index dd32d44..4924408 100644
+----- a/front-end/src/Components/Titles/search.tsx
+--+++ b/front-end/src/Components/Titles/search.tsx
+--@@ -69,6 +69,9 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
+--     const id = `label_${useId()}`
+-- 
+--     const { showFilterItem, setShowFilterItem } = state
+--+
+--+    // Default suffix used to access exclusion InputsData
+--+    const excludeTextString = 'exclude'
+--     const InputName = `search${label.replace(/\s+/g, '').replace(/^./, c => c.toUpperCase())}`
+-- 
+--     return (
+--@@ -94,22 +97,26 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
+--                     <Text tag='span' no_select={true} not_exceed_X={true}>
+--                         {
+--                             (() => {
+---                                const value = InputsController.data[InputName];
+--+
+-- 
+--                                 // MultiDropDown
+---                                if (Array.isArray(value) && value.length > 0 && Array.isArray(options)) {
+---                                    return value
+--+                                const mddValue = InputsController.data[InputName];
+--+                                if (Array.isArray(mddValue) && mddValue.length > 0 && Array.isArray(options)) {
+--+                                    return mddValue
+--                                         .map(v => options.find((obj: staticData) => obj.id === Number(v))?.name)
+--                                         .join(", ");
+--                                 }
+-- 
+--                                 // SelectText & SelectNumber
+---                                if ((typeof value === "string" || typeof value === "number") && !options) {
+---                                    return value.toString() || "None";
+--+                                const slctValue = InputsController.data[InputName];
+--+                                if ((typeof slctValue === "string" || typeof slctValue === "number") && !options) {
+--+                                    return slctValue.toString() || "None";
+--                                 }
+-- 
+--                                 // Faceted
+--+
+--                                 if (isPlainObject(options) && Object.values(options).every(Array.isArray)) {
+--+
+--                                     const optionsKeys = Object.keys(options);
+--                                     const staticKeys = getAllStaticKeys()
+-- 
+--@@ -118,11 +125,20 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
+-- 
+--                                         if (!staticKeys.includes(frmtdKey)) {
+--                                             console.error(`Invalid key "${key}". Cannot format value because it does not exist in data returned by GetAllStatic().`)
+---                                            return null
+--+                                            return []
+--                                         }
+-- 
+--                                         const keyValues = InputsController.data[`${InputName}_${key}`] ?? []
+---                                        return keyValues.map((value: string) => staticMapper(frmtdKey, Number(value)))
+--+                                        const keyExcludeValues = InputsController.data[`${InputName}_${key}_${excludeTextString}`] ?? []
+--+
+--+                                        return [
+--+                                            ...keyValues.map((value: string) =>
+--+                                                staticMapper(frmtdKey, Number(value))
+--+                                            ),
+--+                                            ...keyExcludeValues.map((value: string) =>
+--+                                                `NOT ${staticMapper(frmtdKey, Number(value))}`
+--+                                            )
+--+                                        ]
+--                                     })
+-- 
+--                                     if (values.length > 0) return values.join(", ")
+--@@ -153,16 +169,57 @@ function FilterItem({ type, label, options, state, InputsController }: Faceted |
+--                                         </Text>
+-- 
+--                                         <ul>
+---                                            {value.map(option => (
+---                                                <li key={option.name}>
+---                                                    <CheckBoxInput
+---                                                        value={option.id}
+---                                                        label={option.name}
+---                                                        name={`${InputName}_${key}`}
+---                                                        InputsController={InputsController}
+---                                                    />
+---                                                </li>
+---                                            ))}
+--+                                            {value.map(function (option) {
+--+                                                const dataIncludeKey = `${InputName}_${key}`
+--+                                                const dataExcludeKey = `${InputName}_${key}_${excludeTextString}`
+--+
+--+                                                const isInclude = (InputsController.data[dataIncludeKey] ?? []).includes(String(option.id))
+--+                                                const isExclude = (InputsController.data[dataExcludeKey] ?? []).includes(String(option.id))
+--+
+--+                                                return (
+--+                                                    <li key={option.name}>
+--+                                                        <CheckBoxInput
+--+                                                            value={option.id}
+--+                                                            label={option.name}
+--+                                                            disableOnChange={true}
+--+                                                            classNameLabel={
+--+                                                                `
+--+                                                                search__filters-item__options--faceted-label
+--+                                                                ${isExclude ?
+--+                                                                    `search__filters-item__options--faceted-label-exclude`
+--+                                                                    : isInclude ?
+--+                                                                        `search__filters-item__options--faceted-label-include`
+--+                                                                        : ''
+--+                                                                }
+--+                                                                `
+--+                                                            }
+--+                                                            name={`${InputName}_${key}`}
+--+                                                            onClick={(e) => {
+--+                                                                const filterById = (list: string[], id: number) =>
+--+                                                                    (list ?? []).filter((item) => Number(item) !== id)
+--+
+--+                                                                const id = String(option.id)
+--+                                                                const includes = InputsController.data[dataIncludeKey] ?? []
+--+                                                                const excludes = InputsController.data[dataExcludeKey] ?? []
+--+
+--+                                                                if (isInclude) {
+--+                                                                    // include → exclude
+--+                                                                    InputsController.changeValue(dataIncludeKey, filterById(includes, option.id))
+--+                                                                    InputsController.changeValue(dataExcludeKey, [...excludes, id])
+--+                                                                } else if (isExclude) {
+--+                                                                    // exclude → none
+--+                                                                    InputsController.changeValue(dataIncludeKey, filterById(includes, option.id))
+--+                                                                    InputsController.changeValue(dataExcludeKey, filterById(excludes, option.id))
+--+                                                                } else {
+--+                                                                    // none → include
+--+                                                                    InputsController.changeValue(dataIncludeKey, [...includes, id])
+--+                                                                }
+--+                                                            }}
+--+                                                            InputsController={InputsController}
+--+                                                        />
+--+                                                    </li>
+--+                                                )
+--+                                            })}
+--                                         </ul>
+--                                     </section>
+--                                 ))
+--@@ -236,7 +293,10 @@ export default function Search() {
+--         searchPublicationYear: string,
+-- 
+--         searchTags_Genres: string[],
+---        searchTags_Themes: string[]
+--+        searchTags_Themes: string[],
+--+
+--+        searchTags_Genres_exclude: string[],
+--+        searchTags_Themes_exclude: string[]
+--     }) {
+--         const res = await GetTitlesByFilters({
+--             name: data.searchName,
+--@@ -250,6 +310,9 @@ export default function Search() {
+-- 
+--             genresIds: data.searchTags_Genres,
+--             themesIds: data.searchTags_Themes,
+--+
+--+            excludeGenresIds: data.searchTags_Genres_exclude,
+--+            excludeThemesIds: data.searchTags_Themes_exclude
+--         })
+-- 
+--         if (res) setData(res)
+--diff --git a/front-end/src/Shared/form/FormController.ts b/front-end/src/Shared/form/FormController.ts
+--index 3302a4f..7c2f308 100644
+----- a/front-end/src/Shared/form/FormController.ts
+--+++ b/front-end/src/Shared/form/FormController.ts
+--@@ -1,7 +1,7 @@
+-- //# Types //
+-- import type { InputsController, SubmitController } from '../types/FormController'
+-- //# Libs //
+---import { useState } from "react";
+--+import { useState, useEffect } from "react";
+-- 
+-- type config = {
+--     handleSubmit: (...args: any[]) => Promise<any>;
+--@@ -25,16 +25,21 @@ export function useFormController(config: config) {
+-- 
+--     const [data, setData] = useState<{ [key: string]: any }>({})
+-- 
+--+    useEffect(() => {
+--+        console.log(data)
+--+    }, [data])
+--+
+--     const InputsController: InputsController = {
+--         onChange: onChange,
+--         changeValue: changeValue,
+--         data: data,
+--     }
+---    
+--+
+--     function onChange(event: React.ChangeEvent<HTMLInputElement>) {
+--         const { name, value, type } = event.target
+-- 
+--         if (type == 'checkbox') {
+--+            console.log('onChange')
+--             setData(prev => {
+--                 const current = (prev[name] as any[]) || [];
+-- 
+--@@ -50,10 +55,12 @@ export function useFormController(config: config) {
+--             setData(prev => ({ ...prev, [name]: value }))
+--         }
+--     }
+--+
+--     function changeValue(name: string, value: any) {
+--         setData(prev => ({ ...prev, [name]: value }))
+--     }
+-- 
+--+
+--     const SubmitController: SubmitController = {
+--         onSubmit: onSubmit,
+--     }
+--@@ -62,6 +69,6 @@ export function useFormController(config: config) {
+-- 
+--         await handleSubmit(InputsController.data)
+--     }
+---    
+--+
+--     return { InputsController, SubmitController }
+-- }
+--\ No newline at end of file
+--diff --git a/front-end/src/Shared/styles/_themes.scss b/front-end/src/Shared/styles/_themes.scss
+--index 6d17869..9a0eb93 100644
+----- a/front-end/src/Shared/styles/_themes.scss
+--+++ b/front-end/src/Shared/styles/_themes.scss
+--@@ -18,4 +18,5 @@ $light-theme: (
+--     true-transparent: rgba(0, 175, 0, 0.2),
+-- 
+--     false: rgb(220, 0, 0),
+---)
+--\ No newline at end of file
+--+    false-transparent: rgba(220, 0, 0, 0.2),
+--+    )
+--\ No newline at end of file
+-diff --git a/front-end/src/Components/Global/Titles/featuredtitles.tsx b/front-end/src/Components/Global/Titles/featuredtitles.tsx
+-index e949b20..8a92cee 100644
+---- a/front-end/src/Components/Global/Titles/featuredtitles.tsx
+-+++ b/front-end/src/Components/Global/Titles/featuredtitles.tsx
+-@@ -4,7 +4,7 @@ import Link from '../link'
+- import Img from '../img'
+- import Button from '../Inputs/button'
 - //# Libs //
---import { useState } from "react";
--+import { useState, useEffect } from "react";
+--import { useState } from 'react'
+-+import { useState, useEffect } from 'react'
+- //# Utils //
+- import { staticMapper } from '../../../Shared/utils/staticHandler'
+- //# Types //
+-@@ -18,6 +18,7 @@ import { FaChevronRight } from "react-icons/fa"
 - 
-- type config = {
--     handleSubmit: (...args: any[]) => Promise<any>;
--@@ -25,16 +25,21 @@ export function useFormController(config: config) {
+- export default function FeaturedTitles({ data }: { data: title[] }) {
+-     const [titleIndex, setTitleIndex] = useState(0)
+-+    const [isPaused, setIsPaused] = useState(false)
 - 
--     const [data, setData] = useState<{ [key: string]: any }>({})
+-     function handleTitleSwitch(direction: number) {
+-         let newIndex = titleIndex + direction;
+-@@ -30,8 +31,24 @@ export default function FeaturedTitles({ data }: { data: title[] }) {
+-         setTitleIndex(newIndex)
+-     }
 - 
 -+    useEffect(() => {
--+        console.log(data)
--+    }, [data])
+-+        if (isPaused) return
 -+
--     const InputsController: InputsController = {
--         onChange: onChange,
--         changeValue: changeValue,
--         data: data,
+-+        const interval = setInterval(() => {
+-+            setTitleIndex((prev) =>
+-+                prev >= data.length - 1 ? 0 : prev + 1
+-+            )
+-+        }, 7500)
+-+
+-+        return () => clearInterval(interval)
+-+    }, [isPaused, data.length])
+-+
+-     return (
+--        <section className='featuredtitles' >
+-+        <section
+-+            className='featuredtitles'
+-+            onMouseEnter={() => setIsPaused(true)}
+-+            onMouseLeave={() => setIsPaused(false)}
+-+        >
+-             <ul className='featuredtitles__track' style={{ transform: `translateX(-${titleIndex * 100}%)` }}>
+-                 {
+-                     data.map((title: title, i) => {
+-diff --git a/front-end/src/Components/Title/title.scss b/front-end/src/Components/Title/title.scss
+-index 31e7f3a..83fd48e 100644
+---- a/front-end/src/Components/Title/title.scss
+-+++ b/front-end/src/Components/Title/title.scss
+-@@ -5,7 +5,7 @@
+- @use '../../Shared/styles/default/layout' as layout;
+- @use '../../Shared/styles/default/header' as header;
+- 
+--$text-shadow: 0px 0px 15px var(--text-color);
+-+$text-shadow: 0px 0px 10px var(--text-color);
+- 
+- .title {
+-     display: flex;
+-@@ -40,7 +40,17 @@ $text-shadow: 0px 0px 15px var(--text-color);
+-         @include no-select.no-select;
 -     }
---    
+- 
+--    &__fast-info {
+-+    &__img {
+-+        border-radius: border-radius.$border-radius;
+-+        width: 200px;
+-+        height: 100%;
 -+
--     function onChange(event: React.ChangeEvent<HTMLInputElement>) {
--         const { name, value, type } = event.target
+-+        box-shadow: 0px 0px 10px var(--box-shadow);
+-+
+-+        @include no-select.no-select;
+-+    }
+-+
+-+    &__header {
+-         display: flex;
+-         align-items: center;
 - 
--         if (type == 'checkbox') {
--+            console.log('onChange')
--             setData(prev => {
--                 const current = (prev[name] as any[]) || [];
+-@@ -50,59 +60,69 @@ $text-shadow: 0px 0px 15px var(--text-color);
 - 
--@@ -50,10 +55,12 @@ export function useFormController(config: config) {
--             setData(prev => ({ ...prev, [name]: value }))
+-         gap: 20px;
+- 
+--        &-container {
+-+        &__content {
+-             display: flex;
+-             flex-direction: column;
+-             width: 75%;
+-+            height: 100%;
+-         }
+- 
+--        &-img {
+--            border-radius: border-radius.$border-radius;
+--            width: 200px;
+--            height: 100%;
+- 
+--            @include no-select.no-select;
+--        }
+- 
+--        &-buttons {
+-+        &__meta {
+-             display: flex;
+--            width: 100%;
+--            gap: 17px;
+--        }
+-+            flex-direction: column;
+- 
+--        &-name {
+--            color: var(--color1);
+--            text-shadow: $text-shadow;
+--            font-size: text.$font-size1;
+-+            height: 85%;
+- 
+--            height: 100px;
+-+            &-name {
+-+                margin: 0;
+- 
+--            margin-bottom: 85px;
+--        }
+-+                color: var(--color1);
+-+                text-shadow: $text-shadow;
+-+                font-size: text.$font-size1;
+-+            }
+- 
+--        &-author {
+--            color: var(--color4);
+--            text-shadow: $text-shadow;
+--            font-size: text.$font-size5;
+-+            &-author {
+-+                margin: 0;
+-+
+-+                display: flex;
+-+                height: fit-content;
+-+
+-+                color: var(--color4);
+-+                text-shadow: $text-shadow;
+-+                font-size: text.$font-size5;
+-+
+-+                margin-top: 8px;
+-+            }
+-+        }
+- 
+--            margin-bottom: 15px;
+-+        &__buttons {
+-+            display: flex;
+-+            width: 100%;
+-+            height: 15%;
+-+            gap: 17px;
 -         }
 -     }
+- 
+--    &__info {
+-+    &__content {
+-         display: flex;
+-         align-items: center;
+-         flex-direction: column;
+- 
+--        height: 1000px;
+-+        height: fit-content;
+-         width: layout.$layout-default-width;
+-         margin-top: 25px;
+-         margin-bottom: 25px;
+- 
+--        background-color: color-mix(in srgb, var(--color1) 96%, transparent 4%);
+-+        background:
+-+            linear-gradient(to bottom,
+-+                var(--color1),
+-+                color-mix(in srgb, var(--color1) 80%, transparent 20%));
 -+
--     function changeValue(name: string, value: any) {
--         setData(prev => ({ ...prev, [name]: value }))
+-         border-radius: border-radius.$border-radius;
+- 
+--        &-synopsis {
+-+        &__synopsis {
+-             display: flex;
+-             justify-content: center;
+- 
+-@@ -112,9 +132,10 @@ $text-shadow: 0px 0px 15px var(--text-color);
+- 
+-             margin-top: 25px;
+- 
+-+            text-align: justify;
+-         }
+- 
+--        &-line {
+-+        &__line {
+-             display: flex;
+-             height: 2px;
+-             width: 95%;
+-@@ -127,7 +148,7 @@ $text-shadow: 0px 0px 15px var(--text-color);
+-             border: none;
+-         }
+- 
+--        &-container {
+-+        &__container {
+-             display: flex;
+-             justify-content: space-between;
+- 
+-@@ -135,9 +156,11 @@ $text-shadow: 0px 0px 15px var(--text-color);
+-             height: 80%;
+- 
+-             margin-bottom: 25px;
+-+
+-+            gap: 5%;
+-         }
+- 
+--        &-meta {
+-+        &__meta {
+-             list-style: none;
+-             padding: 0;
+-             margin: 0;
+-@@ -162,7 +185,7 @@ $text-shadow: 0px 0px 15px var(--text-color);
+-                 font-weight: bold;
+-             }
+- 
+--            &-wrapper {
+-+            &-list {
+-                 list-style: none;
+-                 padding: 0;
+-                 margin: 0;
+-@@ -184,47 +207,58 @@ $text-shadow: 0px 0px 15px var(--text-color);
+-                 height: 15px;
+- 
+-                 width: fit-content;
+--                min-width: 60px;
+-+                min-width: 55px;
+- 
+--                padding: 4px;
+-+                padding: 5px 8px;
+- 
+-                 border-radius: border-radius.$border-radius;
+-                 background-color: var(--color3);
+- 
+--                text-align: center;
+--                font-size: text.$font-size6;
+--                color: var(--color1);
+-+
+-+
+-+                &-text {
+-+                    text-align: center;
+-+                    font-size: text.$font-size6;
+-+                    color: var(--color1);
+-+                }
+-             }
+-         }
+- 
+--        &-chapters {
+--            list-style: none;
+--            padding: 0;
+--            margin: 0;
+-+        &__chapters {
+-+            &-list {
+-+                list-style: none;
+-+                padding: 0;
+-+                margin: 0;
+- 
+--            display: flex;
+--            flex-direction: column;
+-+                display: flex;
+-+                flex-direction: column;
+- 
+--            width: 60%;
+--            height: 100%;
+-+                width: 60%;
+-+                height: 100%;
+- 
+--            gap: 25px;
+-+                gap: 25px;
+- 
+--            &-group {
+--                box-shadow: 0px 0px 3px var(--color2);
+--                width: 100%;
+--                height: 10%;
+-+                &-item {
+-+                    display: flex;
+-+                    justify-content: flex-start;
+-+                    align-items: center;
+- 
+--                border-radius: border-radius.$border-radius;
+--                background-color: var(--background-color);
+-+                    width: 100%;
+-+                    height: 50px;
+-+
+-+                    border-radius: border-radius.$border-radius;
+-+                    background-color: var(--background-color);
+-+
+-+                    box-shadow: 0px 0px 3px var(--color2);
+-+                }
+- 
+-                 &-txt {
+-                     font-size: text.$font-size6;
+-                     font-weight: bold;
+--                    margin-top: 5px;
+-                     margin-left: 10px;
+-                 }
+-             }
+-+
+-         }
 -     }
 - 
--+
--     const SubmitController: SubmitController = {
--         onSubmit: onSubmit,
--     }
--@@ -62,6 +69,6 @@ export function useFormController(config: config) {
+-@@ -234,10 +268,10 @@ $text-shadow: 0px 0px 15px var(--text-color);
+-         justify-content: center;
 - 
--         await handleSubmit(InputsController.data)
--     }
---    
--+
--     return { InputsController, SubmitController }
+-         gap: 7px;
+--        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+-+        box-shadow: 0px 0px 10px var(--box-shadow);
+- 
+-         width: 17.5%;
+--        height: 50px;
+-+        height: 100%;
+- 
+-         &-icon {
+-             color: var(--color1);
+-diff --git a/front-end/src/Components/Title/title.tsx b/front-end/src/Components/Title/title.tsx
+-index e1a2d5a..8b44556 100644
+---- a/front-end/src/Components/Title/title.tsx
+-+++ b/front-end/src/Components/Title/title.tsx
+-@@ -24,7 +24,7 @@ import { LuUpload } from "react-icons/lu"
+- 
+- function Buttons() {
+-     return (
+--        <div className='title__fast-info-buttons' role='group'>
+-+        <section className='title__header__buttons' role='group'>
+-             <Button className='title__button' icon={<FaStar className='title__button-icon' />}>
+-                 <Text className='title__button-txt' tag='span' no_select={true}>
+-                     Favorite
+-@@ -45,13 +45,13 @@ function Buttons() {
+-                     Upload
+-                 </Text>
+-             </Button>
+--        </div>
+-+        </section>
+-     )
 - }
--\ No newline at end of file
+- 
+- function SectionMeta({ data }: { data: title | undefined }) {
+-     if (!data) {
+--        console.warn("Warn: Failed to load section meta info data")
+-+        console.warn("Warn: Failed to load section meta content data")
+-         return
+-     }
+- 
+-@@ -94,16 +94,19 @@ function SectionMeta({ data }: { data: title | undefined }) {
+-             })
+- 
+-             return (
+--                <li className="title__info-meta-group" key={`meta_${i}`}>
+--                    <Text tag="h2" className="title__info-meta-label">
+-+                <li className="title__content__meta-group" key={`meta_${i}`}>
+-+                    <Text tag="h2" className="title__content__meta-label">
+-                         {name}
+-                     </Text>
+--                    <ul className="title__info-meta-wrapper">
+-+                    <ul className="title__content__meta-list">
+-                         {
+-                             formattedData.map((data, data_i) => (
+--                                <Text key={`data_${data_i}`} tag="li" className="title__info-meta-item">
+--                                    {data}
+--                                </Text>
+-+                                <li key={`data_${data_i}`} className='title__content__meta-item'>
+-+                                    <Text tag="span" className='title__content__meta-item-text'>
+-+                                        {data}
+-+                                    </Text>
+-+                                </li>
+-+
+-                             ))
+-                         }
+-                     </ul>
+-@@ -113,7 +116,7 @@ function SectionMeta({ data }: { data: title | undefined }) {
+-     }
+- 
+-     return (
+--        <ul className={'title__info-meta'}>
+-+        <ul className={'title__content__meta'}>
+-             <Groups config={config} />
+-         </ul >
+-     )
+-@@ -123,8 +126,8 @@ function SectionChapters() {
+-     function TemplateChapter() {
+-         return (
+-             <>
+--                <li className={'title__info-chapters-group'}>
+--                    <Text tag='span' className='title__info-chapters-group-txt'>
+-+                <li className={'title__content__chapters-list-item'}>
+-+                    <Text tag='span' className='title__content__chapters-list-txt'>
+-                         Chapter 1
+-                     </Text>
+-                 </li>
+-@@ -132,7 +135,7 @@ function SectionChapters() {
+-         )
+-     }
+-     return (
+--        <ul className={'title__info-chapters'}>
+-+        <ul className={'title__content__chapters-list'}>
+-             <TemplateChapter />
+-             <TemplateChapter />
+-             <TemplateChapter />
+-@@ -173,26 +176,29 @@ export default function Title() {
+-             </Text >
+-             <div className='title__container'>
+-                 <Img className={'title__bg-img'} src={'/manga-teste.jpg'} ariaHidden={true} />
+--                <header className='title__fast-info'>
+--                    <Img className={'title__fast-info-img'} src={'/manga-teste.jpg'} alt={`Cover of ${data?.name}`} />
+--                    <div className={'title__fast-info-container'}>
+--                        <Text className={'title__fast-info-name'} tag='h1' title={true}>
+--                            {data?.name}
+--                        </Text>
+--                        <Text className={'title__fast-info-author'} tag='p'>
+--                            {data?.authors.join(", ")}
+--                        </Text>
+-+                <header className='title__header'>
+-+                    <Img className={'title__img'} src={'/manga-teste.jpg'} alt={`Cover of ${data?.name}`} />
+-+
+-+                    <section className={'title__header__content'}>
+-+                        <section className='title__header__meta'>
+-+                            <Text className={'title__header__meta-name'} tag='h1' title={true}>
+-+                                {data?.name}
+-+                            </Text>
+-+                            <Text className={'title__header__meta-author'} tag='p'>
+-+                                {data?.authors.join(", ")}
+-+                            </Text>
+-+                        </section>
+-                         <Buttons />
+--                    </div>
+-+                    </section>
+-                 </header>
+--                <article className={'title__info'}>
+--                    <section className={'title__info-synopsis'}>
+-+                <article className={'title__content'}>
+-+                    <section className={'title__content__synopsis'}>
+-                         <Text split_paragraph={'.'} tag='p'>
+-                             {data?.synopsis}
+-                         </Text>
+-                     </section>
+--                    <hr className='title__info-line' />
+--                    <section className={'title__info-container'}>
+-+                    <hr className='title__content__line' />
+-+                    <section className={'title__content__container'}>
+-                         <SectionMeta data={data} />
+-                         <SectionChapters />
+-                     </section>
+-diff --git a/front-end/src/Components/Titles/search.scss b/front-end/src/Components/Titles/search.scss
+-index e6c71e8..962d1eb 100644
+---- a/front-end/src/Components/Titles/search.scss
+-+++ b/front-end/src/Components/Titles/search.scss
+-@@ -213,18 +213,6 @@
+- 
+-                 &--multidropdown {
+- 
+--                    /*
+--                    &-circle {
+--                        display: flex;
+--
+--                        width: text.$font-size7;
+--                        height: text.$font-size7;
+--
+--                        border: 1px solid black;
+--                        border-radius: 50%;
+--                    }
+--                        */
+--
+-                     ul {
+-                         margin: 0 0 0 7%;
+-                         padding: 0;
 -diff --git a/front-end/src/Shared/styles/_themes.scss b/front-end/src/Shared/styles/_themes.scss
--index 6d17869..9a0eb93 100644
+-index 9a0eb93..cdb833f 100644
 ---- a/front-end/src/Shared/styles/_themes.scss
 -+++ b/front-end/src/Shared/styles/_themes.scss
--@@ -18,4 +18,5 @@ $light-theme: (
+-@@ -14,6 +14,8 @@ $light-theme: (
+-     icon-color: rgb(0, 0, 0),
+- 
+-     //.. Others
+-+    box-shadow: rgba(0, 0, 0, 0.75),
+-+
+-     true: rgb(0, 175, 0),
 -     true-transparent: rgba(0, 175, 0, 0.2),
 - 
--     false: rgb(220, 0, 0),
---)
--\ No newline at end of file
--+    false-transparent: rgba(220, 0, 0, 0.2),
--+    )
--\ No newline at end of file
-diff --git a/front-end/src/Components/Global/Titles/featuredtitles.tsx b/front-end/src/Components/Global/Titles/featuredtitles.tsx
-index e949b20..8a92cee 100644
---- a/front-end/src/Components/Global/Titles/featuredtitles.tsx
-+++ b/front-end/src/Components/Global/Titles/featuredtitles.tsx
-@@ -4,7 +4,7 @@ import Link from '../link'
- import Img from '../img'
- import Button from '../Inputs/button'
- //# Libs //
--import { useState } from 'react'
-+import { useState, useEffect } from 'react'
- //# Utils //
- import { staticMapper } from '../../../Shared/utils/staticHandler'
- //# Types //
-@@ -18,6 +18,7 @@ import { FaChevronRight } from "react-icons/fa"
- 
- export default function FeaturedTitles({ data }: { data: title[] }) {
-     const [titleIndex, setTitleIndex] = useState(0)
-+    const [isPaused, setIsPaused] = useState(false)
- 
-     function handleTitleSwitch(direction: number) {
-         let newIndex = titleIndex + direction;
-@@ -30,8 +31,24 @@ export default function FeaturedTitles({ data }: { data: title[] }) {
-         setTitleIndex(newIndex)
-     }
- 
-+    useEffect(() => {
-+        if (isPaused) return
-+
-+        const interval = setInterval(() => {
-+            setTitleIndex((prev) =>
-+                prev >= data.length - 1 ? 0 : prev + 1
-+            )
-+        }, 7500)
-+
-+        return () => clearInterval(interval)
-+    }, [isPaused, data.length])
-+
-     return (
--        <section className='featuredtitles' >
-+        <section
-+            className='featuredtitles'
-+            onMouseEnter={() => setIsPaused(true)}
-+            onMouseLeave={() => setIsPaused(false)}
-+        >
-             <ul className='featuredtitles__track' style={{ transform: `translateX(-${titleIndex * 100}%)` }}>
-                 {
-                     data.map((title: title, i) => {
-diff --git a/front-end/src/Components/Title/title.scss b/front-end/src/Components/Title/title.scss
-index 31e7f3a..83fd48e 100644
---- a/front-end/src/Components/Title/title.scss
-+++ b/front-end/src/Components/Title/title.scss
-@@ -5,7 +5,7 @@
- @use '../../Shared/styles/default/layout' as layout;
- @use '../../Shared/styles/default/header' as header;
- 
--$text-shadow: 0px 0px 15px var(--text-color);
-+$text-shadow: 0px 0px 10px var(--text-color);
- 
- .title {
-     display: flex;
-@@ -40,7 +40,17 @@ $text-shadow: 0px 0px 15px var(--text-color);
-         @include no-select.no-select;
-     }
- 
--    &__fast-info {
-+    &__img {
-+        border-radius: border-radius.$border-radius;
-+        width: 200px;
-+        height: 100%;
-+
-+        box-shadow: 0px 0px 10px var(--box-shadow);
-+
-+        @include no-select.no-select;
-+    }
-+
-+    &__header {
-         display: flex;
-         align-items: center;
- 
-@@ -50,59 +60,69 @@ $text-shadow: 0px 0px 15px var(--text-color);
- 
-         gap: 20px;
- 
--        &-container {
-+        &__content {
-             display: flex;
-             flex-direction: column;
-             width: 75%;
-+            height: 100%;
-         }
- 
--        &-img {
--            border-radius: border-radius.$border-radius;
--            width: 200px;
--            height: 100%;
- 
--            @include no-select.no-select;
--        }
- 
--        &-buttons {
-+        &__meta {
-             display: flex;
--            width: 100%;
--            gap: 17px;
--        }
-+            flex-direction: column;
- 
--        &-name {
--            color: var(--color1);
--            text-shadow: $text-shadow;
--            font-size: text.$font-size1;
-+            height: 85%;
- 
--            height: 100px;
-+            &-name {
-+                margin: 0;
- 
--            margin-bottom: 85px;
--        }
-+                color: var(--color1);
-+                text-shadow: $text-shadow;
-+                font-size: text.$font-size1;
-+            }
- 
--        &-author {
--            color: var(--color4);
--            text-shadow: $text-shadow;
--            font-size: text.$font-size5;
-+            &-author {
-+                margin: 0;
-+
-+                display: flex;
-+                height: fit-content;
-+
-+                color: var(--color4);
-+                text-shadow: $text-shadow;
-+                font-size: text.$font-size5;
-+
-+                margin-top: 8px;
-+            }
-+        }
- 
--            margin-bottom: 15px;
-+        &__buttons {
-+            display: flex;
-+            width: 100%;
-+            height: 15%;
-+            gap: 17px;
-         }
-     }
- 
--    &__info {
-+    &__content {
-         display: flex;
-         align-items: center;
-         flex-direction: column;
- 
--        height: 1000px;
-+        height: fit-content;
-         width: layout.$layout-default-width;
-         margin-top: 25px;
-         margin-bottom: 25px;
- 
--        background-color: color-mix(in srgb, var(--color1) 96%, transparent 4%);
-+        background:
-+            linear-gradient(to bottom,
-+                var(--color1),
-+                color-mix(in srgb, var(--color1) 80%, transparent 20%));
-+
-         border-radius: border-radius.$border-radius;
- 
--        &-synopsis {
-+        &__synopsis {
-             display: flex;
-             justify-content: center;
- 
-@@ -112,9 +132,10 @@ $text-shadow: 0px 0px 15px var(--text-color);
- 
-             margin-top: 25px;
- 
-+            text-align: justify;
-         }
- 
--        &-line {
-+        &__line {
-             display: flex;
-             height: 2px;
-             width: 95%;
-@@ -127,7 +148,7 @@ $text-shadow: 0px 0px 15px var(--text-color);
-             border: none;
-         }
- 
--        &-container {
-+        &__container {
-             display: flex;
-             justify-content: space-between;
- 
-@@ -135,9 +156,11 @@ $text-shadow: 0px 0px 15px var(--text-color);
-             height: 80%;
- 
-             margin-bottom: 25px;
-+
-+            gap: 5%;
-         }
- 
--        &-meta {
-+        &__meta {
-             list-style: none;
-             padding: 0;
-             margin: 0;
-@@ -162,7 +185,7 @@ $text-shadow: 0px 0px 15px var(--text-color);
-                 font-weight: bold;
-             }
- 
--            &-wrapper {
-+            &-list {
-                 list-style: none;
-                 padding: 0;
-                 margin: 0;
-@@ -184,47 +207,58 @@ $text-shadow: 0px 0px 15px var(--text-color);
-                 height: 15px;
- 
-                 width: fit-content;
--                min-width: 60px;
-+                min-width: 55px;
- 
--                padding: 4px;
-+                padding: 5px 8px;
- 
-                 border-radius: border-radius.$border-radius;
-                 background-color: var(--color3);
- 
--                text-align: center;
--                font-size: text.$font-size6;
--                color: var(--color1);
-+
-+
-+                &-text {
-+                    text-align: center;
-+                    font-size: text.$font-size6;
-+                    color: var(--color1);
-+                }
-             }
-         }
- 
--        &-chapters {
--            list-style: none;
--            padding: 0;
--            margin: 0;
-+        &__chapters {
-+            &-list {
-+                list-style: none;
-+                padding: 0;
-+                margin: 0;
- 
--            display: flex;
--            flex-direction: column;
-+                display: flex;
-+                flex-direction: column;
- 
--            width: 60%;
--            height: 100%;
-+                width: 60%;
-+                height: 100%;
- 
--            gap: 25px;
-+                gap: 25px;
- 
--            &-group {
--                box-shadow: 0px 0px 3px var(--color2);
--                width: 100%;
--                height: 10%;
-+                &-item {
-+                    display: flex;
-+                    justify-content: flex-start;
-+                    align-items: center;
- 
--                border-radius: border-radius.$border-radius;
--                background-color: var(--background-color);
-+                    width: 100%;
-+                    height: 50px;
-+
-+                    border-radius: border-radius.$border-radius;
-+                    background-color: var(--background-color);
-+
-+                    box-shadow: 0px 0px 3px var(--color2);
-+                }
- 
-                 &-txt {
-                     font-size: text.$font-size6;
-                     font-weight: bold;
--                    margin-top: 5px;
-                     margin-left: 10px;
-                 }
-             }
-+
-         }
-     }
- 
-@@ -234,10 +268,10 @@ $text-shadow: 0px 0px 15px var(--text-color);
-         justify-content: center;
- 
-         gap: 7px;
--        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-+        box-shadow: 0px 0px 10px var(--box-shadow);
- 
-         width: 17.5%;
--        height: 50px;
-+        height: 100%;
- 
-         &-icon {
-             color: var(--color1);
-diff --git a/front-end/src/Components/Title/title.tsx b/front-end/src/Components/Title/title.tsx
-index e1a2d5a..8b44556 100644
---- a/front-end/src/Components/Title/title.tsx
-+++ b/front-end/src/Components/Title/title.tsx
-@@ -24,7 +24,7 @@ import { LuUpload } from "react-icons/lu"
- 
- function Buttons() {
-     return (
--        <div className='title__fast-info-buttons' role='group'>
-+        <section className='title__header__buttons' role='group'>
-             <Button className='title__button' icon={<FaStar className='title__button-icon' />}>
-                 <Text className='title__button-txt' tag='span' no_select={true}>
-                     Favorite
-@@ -45,13 +45,13 @@ function Buttons() {
-                     Upload
-                 </Text>
-             </Button>
--        </div>
-+        </section>
-     )
- }
- 
- function SectionMeta({ data }: { data: title | undefined }) {
-     if (!data) {
--        console.warn("Warn: Failed to load section meta info data")
-+        console.warn("Warn: Failed to load section meta content data")
-         return
-     }
- 
-@@ -94,16 +94,19 @@ function SectionMeta({ data }: { data: title | undefined }) {
-             })
- 
-             return (
--                <li className="title__info-meta-group" key={`meta_${i}`}>
--                    <Text tag="h2" className="title__info-meta-label">
-+                <li className="title__content__meta-group" key={`meta_${i}`}>
-+                    <Text tag="h2" className="title__content__meta-label">
-                         {name}
-                     </Text>
--                    <ul className="title__info-meta-wrapper">
-+                    <ul className="title__content__meta-list">
-                         {
-                             formattedData.map((data, data_i) => (
--                                <Text key={`data_${data_i}`} tag="li" className="title__info-meta-item">
--                                    {data}
--                                </Text>
-+                                <li key={`data_${data_i}`} className='title__content__meta-item'>
-+                                    <Text tag="span" className='title__content__meta-item-text'>
-+                                        {data}
-+                                    </Text>
-+                                </li>
-+
-                             ))
-                         }
-                     </ul>
-@@ -113,7 +116,7 @@ function SectionMeta({ data }: { data: title | undefined }) {
-     }
- 
-     return (
--        <ul className={'title__info-meta'}>
-+        <ul className={'title__content__meta'}>
-             <Groups config={config} />
-         </ul >
-     )
-@@ -123,8 +126,8 @@ function SectionChapters() {
-     function TemplateChapter() {
-         return (
-             <>
--                <li className={'title__info-chapters-group'}>
--                    <Text tag='span' className='title__info-chapters-group-txt'>
-+                <li className={'title__content__chapters-list-item'}>
-+                    <Text tag='span' className='title__content__chapters-list-txt'>
-                         Chapter 1
-                     </Text>
-                 </li>
-@@ -132,7 +135,7 @@ function SectionChapters() {
-         )
-     }
-     return (
--        <ul className={'title__info-chapters'}>
-+        <ul className={'title__content__chapters-list'}>
-             <TemplateChapter />
-             <TemplateChapter />
-             <TemplateChapter />
-@@ -173,26 +176,29 @@ export default function Title() {
-             </Text >
-             <div className='title__container'>
-                 <Img className={'title__bg-img'} src={'/manga-teste.jpg'} ariaHidden={true} />
--                <header className='title__fast-info'>
--                    <Img className={'title__fast-info-img'} src={'/manga-teste.jpg'} alt={`Cover of ${data?.name}`} />
--                    <div className={'title__fast-info-container'}>
--                        <Text className={'title__fast-info-name'} tag='h1' title={true}>
--                            {data?.name}
--                        </Text>
--                        <Text className={'title__fast-info-author'} tag='p'>
--                            {data?.authors.join(", ")}
--                        </Text>
-+                <header className='title__header'>
-+                    <Img className={'title__img'} src={'/manga-teste.jpg'} alt={`Cover of ${data?.name}`} />
-+
-+                    <section className={'title__header__content'}>
-+                        <section className='title__header__meta'>
-+                            <Text className={'title__header__meta-name'} tag='h1' title={true}>
-+                                {data?.name}
-+                            </Text>
-+                            <Text className={'title__header__meta-author'} tag='p'>
-+                                {data?.authors.join(", ")}
-+                            </Text>
-+                        </section>
-                         <Buttons />
--                    </div>
-+                    </section>
-                 </header>
--                <article className={'title__info'}>
--                    <section className={'title__info-synopsis'}>
-+                <article className={'title__content'}>
-+                    <section className={'title__content__synopsis'}>
-                         <Text split_paragraph={'.'} tag='p'>
-                             {data?.synopsis}
-                         </Text>
-                     </section>
--                    <hr className='title__info-line' />
--                    <section className={'title__info-container'}>
-+                    <hr className='title__content__line' />
-+                    <section className={'title__content__container'}>
-                         <SectionMeta data={data} />
-                         <SectionChapters />
-                     </section>
-diff --git a/front-end/src/Components/Titles/search.scss b/front-end/src/Components/Titles/search.scss
-index e6c71e8..962d1eb 100644
---- a/front-end/src/Components/Titles/search.scss
-+++ b/front-end/src/Components/Titles/search.scss
-@@ -213,18 +213,6 @@
- 
-                 &--multidropdown {
- 
--                    /*
--                    &-circle {
--                        display: flex;
--
--                        width: text.$font-size7;
--                        height: text.$font-size7;
--
--                        border: 1px solid black;
--                        border-radius: 50%;
--                    }
--                        */
--
-                     ul {
-                         margin: 0 0 0 7%;
-                         padding: 0;
-diff --git a/front-end/src/Shared/styles/_themes.scss b/front-end/src/Shared/styles/_themes.scss
-index 9a0eb93..cdb833f 100644
---- a/front-end/src/Shared/styles/_themes.scss
-+++ b/front-end/src/Shared/styles/_themes.scss
-@@ -14,6 +14,8 @@ $light-theme: (
-     icon-color: rgb(0, 0, 0),
- 
-     //.. Others
-+    box-shadow: rgba(0, 0, 0, 0.75),
-+
-     true: rgb(0, 175, 0),
-     true-transparent: rgba(0, 175, 0, 0.2),
- 

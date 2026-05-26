@@ -1,6 +1,8 @@
 ﻿using back_end.Data;
 using Microsoft.AspNetCore.Mvc;
 using back_end.Database.DbAccess;
+using Microsoft.EntityFrameworkCore;
+using System.Runtime.Intrinsics.X86;
 
 namespace back_end.Controllers
 {
@@ -17,6 +19,40 @@ namespace back_end.Controllers
             _DbSeeds = new DbSeeds(context); 
         }
 
+        // Chapter seeding is done manually because each title requires multiple chapters
+        // with unique and ordered numbers — something that couldn't be easily implemented
+        // in the generic DbSeeds.Run<T>() method.
+        private async Task SeedChapters()
+        {
+            Random random = Random.Shared;
+            List<Models.Title> titles = await _context.Titles.ToListAsync();
+            List<Models.Chapter> chapters = new List<Models.Chapter>()!;
+
+            int id = 1;
+            foreach (Models.Title title in titles)
+            {
+                int totalChapters = random.Next(1, 201);
+                SortedSet<decimal> chapterNumbers = new SortedSet<decimal>()!;
+
+                while (chapterNumbers.Count < totalChapters)
+                {
+                    double roll = random.NextDouble();
+                    decimal number = roll < 0.05 ? random.Next(151, 201)
+                                   : roll < 0.25 ? random.Next(51, 151)
+                                   : random.Next(1, 51);
+
+                    decimal fraction = random.NextDouble() < 0.7 ? 0m : random.Next(1, 10) / 10m;
+                    chapterNumbers.Add(number + fraction);
+                }
+
+                foreach (decimal number in chapterNumbers)
+                    chapters.Add(new Models.Chapter { id = id++, TitleId = title.id, number = number });
+            }
+
+            _context.Chapters.AddRange(chapters);
+            await _context.SaveChangesAsync();
+        }
+
         [HttpPost("Static")]
         public async Task<IActionResult> Static()
         {
@@ -27,9 +63,8 @@ namespace back_end.Controllers
         [HttpPost("Seed")]
         public async Task<IActionResult> Seed([FromBody] int rows = 500)
         {
-            await _DbSeeds.Clear("Titles");
-            await _DbSeeds.Clear("Artists");
-            await _DbSeeds.Clear("Authors");
+            await _DbSeeds.Clear();
+            await _DbSeeds.Static();
 
             await _DbSeeds.Run<Models.Title>("Titles", rows, new Models.Title {
                 name = "Manga",    
@@ -46,6 +81,10 @@ namespace back_end.Controllers
             });
             await _DbSeeds.Run<Models.Artist>("Artists", rows, new Models.Artist { name = "Artist" });
             await _DbSeeds.Run<Models.Author>("Authors", rows, new Models.Author { name = "Author" });
+            await _DbSeeds.Run<Models.AlternativeName>("AlternativeNames", rows, new Models.AlternativeName { name = "Alternative Name" });
+            await _DbSeeds.Run<Models.ScanGroup>("ScanGroups", rows, new Models.ScanGroup { name = "ScanGroup", websiteUrl = "teste" });
+            await SeedChapters();
+            await _DbSeeds.Run<Models.ChapterTranslation>("ChapterTranslations", rows, new Models.ChapterTranslation { chapterTitle = "Teste" });
 
             return Ok("Seed executed");
         }
